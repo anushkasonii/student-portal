@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Paper,
@@ -6,97 +7,129 @@ import {
   TextField,
   Button,
   Box,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  Alert,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
-export default function Login() {
+function Login() {
   const navigate = useNavigate();
-  const [role, setRole] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+  });
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e, role) => {
     e.preventDefault();
-    try {
-      const response = await axios.post('http://localhost:8080/login', {
-        username,
-        password,
-        role,
-      });
+    
+    // Basic validation
+    if (!formData.username || !formData.password) {
+      setError('Please fill in all fields');
+      return;
+    }
 
-      const { token, userRole } = response.data;
-
-      // Save token and role to localStorage
-      localStorage.setItem('authToken', token);
-      localStorage.setItem('role', userRole);
-
-      // Navigate to the correct portal based on role
-      if (userRole === 'reviewer') {
-        navigate('/reviewer');
-      } else if (userRole === 'hod') {
-        navigate('/hod');
-      }
-    } catch (err) {
-      setError('Invalid credentials or role');
+    // Temporary login logic (replace with actual API integration)
+    if (formData.username === 'reviewer' && formData.password === 'password' && role === 'reviewer') {
+      localStorage.setItem('userRole', 'reviewer');
+      localStorage.setItem('isAuthenticated', 'true');
+      navigate('/reviewer');
+    } else if (formData.username === 'hod' && formData.password === 'password' && role === 'hod') {
+      localStorage.setItem('userRole', 'hod');
+      localStorage.setItem('isAuthenticated', 'true');
+      navigate('/hod');
+    } else {
+      setError('Invalid credentials');
     }
   };
 
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+    setError('');
+  };
+
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 3 }}>
-        <Typography variant="h5" gutterBottom>
-          Login
-        </Typography>
-        <form onSubmit={handleSubmit}>
-          <Box mb={2}>
-            <TextField
-              fullWidth
-              label="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </Box>
-          <Box mb={2}>
-            <TextField
-              fullWidth
-              label="Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </Box>
-          <Box mb={2}>
-            <FormControl fullWidth>
-              <InputLabel>Role</InputLabel>
-              <Select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                required
-              >
-                <MenuItem value="reviewer">Reviewer</MenuItem>
-                <MenuItem value="hod">HoD</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+    <>
+      <div className="app-header">
+        <Container>
+          <Typography variant="h4" align="center" sx={{color:'black'}}>
+            Staff Login Portal
+          </Typography>
+        </Container>
+      </div>
+      <Container maxWidth="sm">
+        <Paper className="login-container">
           {error && (
-            <Typography color="error" mb={2}>
+            <Alert severity="error" sx={{ mb: 2 }}>
               {error}
-            </Typography>
+            </Alert>
           )}
-          <Button type="submit" variant="contained" color="primary" fullWidth>
-            Login
-          </Button>
-        </form>
-      </Paper>
-    </Container>
+          <form>
+            <Box sx={{ mb: 3 }}>
+              <TextField
+                fullWidth
+                label="Username/Email"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                required
+                variant="outlined"
+                sx={{ backgroundColor: 'white' }}
+              />
+            </Box>
+            <Box sx={{ mb: 4 }}>
+              <TextField
+                fullWidth
+                label="Password"
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                variant="outlined"
+                sx={{ backgroundColor: 'white' }}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                size="large"
+                onClick={(e) => handleSubmit(e, 'hod')}
+                sx={{ 
+                  py: 1.5,
+                  backgroundColor: '#1976d2',
+                  '&:hover': {
+                    backgroundColor: '#1565c0'
+                  }
+                }}
+              >
+                Login as HOD
+              </Button>
+              <Button
+                fullWidth
+                variant="contained"
+                color="secondary"
+                size="large"
+                onClick={(e) => handleSubmit(e, 'reviewer')}
+                sx={{ 
+                  py: 1.5,
+                  backgroundColor: '#2e7d32',
+                  '&:hover': {
+                    backgroundColor: '#1b5e20'
+                  }
+                }}
+              >
+                Login as Reviewer
+              </Button>
+            </Box>
+          </form>
+        </Paper>
+      </Container>
+    </>
   );
 }
 
+export default Login;

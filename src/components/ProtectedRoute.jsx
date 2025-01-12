@@ -1,14 +1,16 @@
 import { Navigate } from 'react-router-dom';
 
-const ProtectedRoute = ({ children, role }) => {
-  const isAuthenticated = true;
-  const userRole = role;
+function ProtectedRoute({ children, role }) {
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const userRole = localStorage.getItem('userRole');
+
+
 
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
 
-  if (isAuthenticated && role !== userRole) {
+  if (role && role !== userRole) {
     return <Navigate to="/" />;
   }
 
