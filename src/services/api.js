@@ -1,75 +1,73 @@
-// Axios configuration
+// src/services/api.js
 import axios from 'axios';
 
-// Base API URL - update this to match your backend URL
-const API_URL = 'http://localhost:8080';
-const api = axios.create({
-  baseURL: API_URL,
+const SUBMISSION_SERVICE_URL = 'http://localhost:8001';
+const MAIN_SERVICE_URL = 'http://localhost:8002';
+
+// Create separate instances for different services
+const submissionApi = axios.create({
+  baseURL: SUBMISSION_SERVICE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add token to requests if available
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+const mainApi = axios.create({
+  baseURL: MAIN_SERVICE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-export const submitStudentForm = async (formData) => {
-  try {
-    const response = await api.post('/submit', formData);
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
+// Add JWT token to requests for both instances
+[submissionApi, mainApi].forEach(api => {
+  api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  });
+});
+
+// Auth endpoints (Main service)
+export const loginReviewer = async (credentials) => {
+  const response = await mainApi.post('/reviewer/login', credentials);
+  return response.data;
 };
 
-export const loginUser = async (credentials, role) => {
-  try {
-    const endpoint = role === 'hod' ? '/hod/login' : '/reviewer/login';
-    const response = await api.post(endpoint, credentials);
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
+export const loginHod = async (credentials) => {
+  const response = await mainApi.post('/hod/login', credentials);
+  return response.data;
 };
 
+// Submission endpoints (Submission service)
+export const submitApplication = async (formData) => {
+  const response = await submissionApi.post('/submit', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return response.data;
+};
+
+// Review endpoints (Main service)
 export const getSubmissions = async () => {
-  try {
-    const response = await api.get('/reviewer/submissions');
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
+  const response = await mainApi.get('/reviewer/submissions');
+  return response.data;
 };
 
 export const getApprovedSubmissions = async () => {
-  try {
-    const response = await api.get('/hod/submissions/approved');
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
+  const response = await mainApi.get('/hod/approved_submissions');
+  return response.data;
 };
 
-export const submitReview = async (reviewData) => {
-  try {
-    const response = await api.post('/reviewer/fpc_reviews', reviewData);
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
+export const createReview = async (reviewData) => {
+  const response = await mainApi.post('/reviewer/fpc_reviews', reviewData);
+  return response.data;
 };
 
-export const submitHodReview = async (reviewData) => {
-  try {
-    const response = await api.post('/hod/hod_reviews', reviewData);
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
+export const createHodReview = async (reviewData) => {
+  const response = await mainApi.post('/hod/hod_reviews', reviewData);
+  return response.data;
 };
+
+export { submissionApi, mainApi };

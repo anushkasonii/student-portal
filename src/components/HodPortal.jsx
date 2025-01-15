@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { getApprovedSubmissions, createHodReview, submitHodReview } from '../services/api';
+
 import {
   Container,
   Paper,
@@ -20,7 +22,6 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import { getApprovedSubmissions, submitHodReview } from '../services/api';
 
 function HodPortal() {
   const [applications, setApplications] = useState([]);
@@ -33,17 +34,15 @@ function HodPortal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchApplications();
+    fetchApprovedSubmissions();
   }, []);
 
-  const fetchApplications = async () => {
+  const fetchApprovedSubmissions = async () => {
     try {
       const data = await getApprovedSubmissions();
       setApplications(data);
     } catch (error) {
-      toast.error('Failed to fetch applications');
-    } finally {
-      setIsLoading(false);
+      console.error('Error fetching approved submissions:', error);
     }
   };
 
@@ -55,30 +54,26 @@ function HodPortal() {
   };
 
   const handleSubmit = async () => {
-    if (action === 'reject' && !remarks.trim()) {
+    if (action === 'Reject' && !remarks.trim()) {
       setError('Comments are required for rejection');
       return;
     }
 
     try {
-      setIsSubmitting(true);
-      await submitHodReview({
-        submissionId: selectedApp.id,
-        status: action,
-        remarks: remarks,
+      await createHodReview({
+        submission_id: selectedApp.id,
+        hod_id: localStorage.getItem('userId'),
+        action: action,
+        remarks: remarks
       });
 
-      await fetchApplications();
-      toast.success('Review submitted successfully');
+      await fetchApprovedSubmissions();
       setOpenDialog(false);
       setRemarks('');
       setSelectedApp(null);
       setError('');
     } catch (error) {
-      toast.error(error.message || 'Failed to submit review');
-      setError(error.message);
-    } finally {
-      setIsSubmitting(false);
+      setError(error.response?.data?.message || 'Failed to submit review');
     }
   };
 

@@ -15,9 +15,12 @@ import {
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import axios from 'axios';
+import { submitApplication } from '../services/api';
+import { api } from '../services/api'; // Adjust the path if necessary.
 
-const SUPPORTED_FORMATS = ['application/pdf'];
-const FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+
+
 
 const validationSchema = yup.object({
   registrationNumber: yup.string().required('Registration number is required'),
@@ -54,12 +57,16 @@ const validationSchema = yup.object({
     .required('Start date is required')
     .min(new Date(), 'Start date cannot be in the past'),
   endDate: yup.date()
-    .required('End date is required')
-    .min(yup.ref('startDate'), 'End date must be after start date'),
+    .required('End date is required'),
+    //.min(yup.ref('startDate'), 'End date must be after start date'),
   termsAccepted: yup.boolean().oneOf([true], 'Must accept terms and conditions'),
 });
 
 function StudentForm() {
+  const SUPPORTED_FORMATS = ['application/pdf'];
+const FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const [formErrors, setFormErrors] = useState([]);
+  const [state, setState] = useState('');
   const [offerLetter, setOfferLetter] = useState(null);
   const [mailCopy, setMailCopy] = useState(null);
   const [fileError, setFileError] = useState('');
@@ -96,9 +103,13 @@ function StudentForm() {
     onSubmit: async (values) => {
       const offerLetterError = validateFile(offerLetter);
       const mailCopyError = validateFile(mailCopy);
-
+      const errors = [];
       if (offerLetterError || mailCopyError) {
         setFileError(offerLetterError || mailCopyError);
+        return;
+      }
+      if (errors.length > 0) {
+        setFormErrors(errors);
         return;
       }
       
@@ -111,30 +122,46 @@ function StudentForm() {
       formData.append('offerLetter', offerLetter);
       formData.append('mailCopy', mailCopy);
 
-  //     try {
-  //       // Send POST request to /submit
-  //       const response = await axios.post('http://localhost:8080/submit', formData, {
-  //     headers: { 'Content-Type': 'multipart/form-data' },
-  //   });
-  //   console.log('Success:', response.data);
-  //   setSubmissionStatus('Form submitted successfully!');
-  // } catch (error) {
-  //   const errorMessage = error.response?.data?.message || 'Failed to submit the form. Please try again.';
-  //   console.error('Error details:', error.response?.data || error.message);
-  //   setSubmissionStatus(errorMessage);
-  // }
+//       try {
+//         // Send POST request to /submit
+//         // const response = await axios.post('http://localhost:8080/submit', formData, {
+//         //   headers: { 'Content-Type': 'multipart/form-data' },
+//         // });
+//         try {
+//           await submitApplication(formData);
+//         console.log('Success:', response.data);
+//         setSubmissionStatus('Form submitted successfully!');
+//       } catch (error) {
+//         const errorMessage = error.response?.data?.message || 'Failed to submit the form. Please try again.';
+//         console.error('Error details:', error.response?.data || error.message);
+//         setSubmissionStatus(errorMessage);
+//       }
   
-  try {
-    console.log('Form data to submit:', formData);
-    // Simulate success
-    setSubmissionStatus('Form submitted successfully!');
-  } catch (error) {
-    console.error('Simulated error:', error);
-    setSubmissionStatus('Failed to submit the form. Please try again.');
-  }
-  
-},
+// },
+//   });
+
+try {
+  const formData = new FormData();
+  Object.entries(values).forEach(([key, value]) => {
+    formData.append(key, value);
   });
+  formData.append('offerLetter', offerLetter);
+  formData.append('mailCopy', mailCopy);
+
+  await submitApplication(formData);
+
+
+  // Reset form
+  formik.resetForm();
+  setOfferLetter(null);
+  setMailCopy(null);
+  setFormErrors([]);
+  // Show success message
+} catch (error) {
+  setFormErrors([error.response?.data?.message || 'Failed to submit application']);
+}
+},
+});
 
   return (
     <Box>
@@ -409,7 +436,7 @@ function StudentForm() {
                 size="large"
                 fullWidth
                 className="submit-button"
-                disabled={!formik.isValid || !formik.values.termsAccepted}
+                //disabled={!formik.isValid || !formik.values.termsAccepted}
               >
                 Submit Application
               </Button>

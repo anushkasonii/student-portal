@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { getSubmissions, createReview, submitReview } from '../services/api';
+
 import {
   Container,
   Paper,
@@ -20,7 +22,6 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import { getSubmissions, submitReview } from '../services/api';
 
 function ReviewerPortal() {
   const [applications, setApplications] = useState([]);
@@ -32,18 +33,30 @@ function ReviewerPortal() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // useEffect(() => {
+  //   fetchApplications();
+  // }, []);
+
+  // const fetchApplications = async () => {
+  //   try {
+  //     const data = await getSubmissions();
+  //     setApplications(data);
+  //   } catch (error) {
+  //     toast.error('Failed to fetch applications');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
   useEffect(() => {
-    fetchApplications();
+    fetchSubmissions();
   }, []);
 
-  const fetchApplications = async () => {
+  const fetchSubmissions = async () => {
     try {
       const data = await getSubmissions();
       setApplications(data);
     } catch (error) {
-      toast.error('Failed to fetch applications');
-    } finally {
-      setIsLoading(false);
+      console.error('Error fetching submissions:', error);
     }
   };
 
@@ -56,32 +69,49 @@ function ReviewerPortal() {
   };
 
   const handleSubmit = async () => {
-    if ((action === 'rejected' || action === 'rework') && !remarks.trim()) {
+    if ((action === 'Reject' || action === 'Rework') && !remarks.trim()) {
       setError('Comments are required for reject/rework actions');
       return;
     }
 
-    try {
-      setIsSubmitting(true);
-      await submitReview({
-        submissionId: selectedApp.id,
-        status: action,
-        remarks: remarks,
-      });
+  //   try {
+  //     setIsSubmitting(true);
+  //     await submitReview({
+  //       submissionId: selectedApp.id,
+  //       status: action,
+  //       remarks: remarks,
+  //     });
 
-      await fetchApplications();
-      toast.success('Review submitted successfully');
-      setOpenDialog(false);
-      setRemarks('');
-      setSelectedApp(null);
-      setError('');
-    } catch (error) {
-      toast.error(error.message || 'Failed to submit review');
-      setError(error.message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  //     await fetchApplications();
+  //     toast.success('Review submitted successfully');
+  //     setOpenDialog(false);
+  //     setRemarks('');
+  //     setSelectedApp(null);
+  //     setError('');
+  //   } catch (error) {
+  //     toast.error(error.message || 'Failed to submit review');
+  //     setError(error.message);
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+  try {
+    await createReview({
+      submission_id: selectedApp.id,
+      reviewer_id: localStorage.getItem('userId'),
+      status: action,
+      comments: remarks
+    });
+
+    await fetchSubmissions();
+    setOpenDialog(false);
+    setRemarks('');
+    setSelectedApp(null);
+    setError('');
+  } catch (error) {
+    setError(error.response?.data?.message || 'Failed to submit review');
+  }
+};
 
   if (isLoading) {
     return (

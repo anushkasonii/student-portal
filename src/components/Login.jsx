@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { loginReviewer, loginHod } from '../services/api';
+
 import {
   Container,
   Paper,
@@ -12,48 +14,97 @@ import {
 
 function Login() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: '',
   });
   const [error, setError] = useState('');
 
-  const handleSubmit = (e, role) => {
+  const handleSubmit = async (e, role) => {
     e.preventDefault();
-    
+
     // Basic validation
-    if (!formData.username || !formData.password) {
+    if (!formData.email || !formData.password) {
       setError('Please fill in all fields');
       return;
     }
+    setLoading(true);
 
-    // Temporary login logic (replace with actual API integration)
-    if (formData.username === 'reviewer' && formData.password === 'password' && role === 'reviewer') {
-      localStorage.setItem('userRole', 'reviewer');
-      localStorage.setItem('isAuthenticated', 'true');
-      navigate('/reviewer');
-    } else if (formData.username === 'hod' && formData.password === 'password' && role === 'hod') {
-      localStorage.setItem('userRole', 'hod');
-      localStorage.setItem('isAuthenticated', 'true');
-      navigate('/hod');
-    } else {
-      setError('Invalid credentials');
-    }
-  };
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-    setError('');
-  };
+    // const trimmedEmail = formData.email.trim();
+    // const trimmedPassword = formData.password.trim();
+
+    // try {
+    //   console.log('Sending data:', { email: trimmedEmail, password: trimmedPassword });
+
+    //   const response = await fetch(`http://localhost:8080/${role}/login`, {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify({
+    //       email: trimmedEmail,
+    //       password: trimmedPassword,
+    //     }),
+    //   });
+
+      try {
+        const loginFn = role === 'reviewer' ? loginReviewer : loginHod;
+        const response = await loginFn({
+          email: formData.email,
+          password: formData.password
+        });
+  
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('userRole', role);
+        localStorage.setItem('userId', response.id);
+        localStorage.setItem('isAuthenticated', 'true');
+        
+        navigate(role === 'reviewer' ? '/reviewer' : '/hod');
+      } catch (error) {
+        setError(error.response?.data?.error || 'Invalid credentials');
+      } finally {
+        setLoading(false);
+      }
+    };
+    const handleChange = (e) => {
+      setFormData({
+        ...formData,
+        [e.target.name]: e.target.value,
+      });
+      setError('');
+    };
+  
+  
+
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       localStorage.setItem('token', data.token);
+
+  //       if (role === 'reviewer') {
+  //         navigate('/reviewer/submissions');
+  //       } else if (role === 'hod') {
+  //         navigate('/hod/submissions/approved');
+  //       }
+  //     } else {
+  //       const errorData = await response.json();
+  //       setError(errorData.error || 'Invalid credentials');
+  //     }
+  //   } catch (err) {
+  //     console.error('Error logging in:', err);
+  //     setError('Something went wrong. Please try again.');
+  //   }
+  // };
+
+  
 
   return (
     <>
       <div className="app-header">
         <Container>
-          <Typography variant="h4" align="center" sx={{color:'black'}}>
+          <Typography variant="h4" align="center" sx={{ color: 'black' }}>
             Staff Login Portal
           </Typography>
         </Container>
@@ -69,9 +120,9 @@ function Login() {
             <Box sx={{ mb: 3 }}>
               <TextField
                 fullWidth
-                label="Username/Email"
-                name="username"
-                value={formData.username}
+                label="Email"
+                name="email"
+                value={formData.email}
                 onChange={handleChange}
                 required
                 variant="outlined"
@@ -92,38 +143,25 @@ function Login() {
               />
             </Box>
             <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
-              <Button
-                fullWidth
-                variant="contained"
-                color="primary"
-                size="large"
-                onClick={(e) => handleSubmit(e, 'hod')}
-                sx={{ 
-                  py: 1.5,
-                  backgroundColor: '#1976d2',
-                  '&:hover': {
-                    backgroundColor: '#1565c0'
-                  }
-                }}
-              >
-                Login as HOD
-              </Button>
-              <Button
-                fullWidth
-                variant="contained"
-                color="secondary"
-                size="large"
-                onClick={(e) => handleSubmit(e, 'reviewer')}
-                sx={{ 
-                  py: 1.5,
-                  backgroundColor: '#2e7d32',
-                  '&:hover': {
-                    backgroundColor: '#1b5e20'
-                  }
-                }}
-              >
-                Login as Reviewer
-              </Button>
+              {['hod', 'reviewer'].map((role) => (
+                <Button
+                  key={role}
+                  fullWidth
+                  variant="contained"
+                  color={role === 'hod' ? 'primary' : 'secondary'}
+                  size="large"
+                  onClick={(e) => handleSubmit(e, role)}
+                  sx={{
+                    py: 1.5,
+                    backgroundColor: role === 'hod' ? '#1976d2' : '#2e7d32',
+                    '&:hover': {
+                      backgroundColor: role === 'hod' ? '#1565c0' : '#1b5e20',
+                    },
+                  }}
+                >
+                  Login as {role.toUpperCase()}
+                </Button>
+              ))}
             </Box>
           </form>
         </Paper>
