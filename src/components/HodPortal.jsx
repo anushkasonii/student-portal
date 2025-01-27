@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
-import { getApprovedSubmissions, createHodReview, submitHodReview } from '../services/api';
-
+import { getIdFromToken } from '../utils/authUtils';
 import {
   Container,
   Paper,
@@ -22,6 +20,7 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
+import { getApprovedSubmissions, createHodReview } from '../services/api';
 
 function HodPortal() {
   const [applications, setApplications] = useState([]);
@@ -29,9 +28,8 @@ function HodPortal() {
   const [remarks, setRemarks] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
   const [action, setAction] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchApprovedSubmissions();
@@ -40,13 +38,21 @@ function HodPortal() {
   const fetchApprovedSubmissions = async () => {
     try {
       const data = await getApprovedSubmissions();
-      setApplications(data);
+      if (Array.isArray(data)) {
+        setApplications(data);
+      } else {
+        throw new Error('Invalid data format');
+      }
+      setError('');
     } catch (error) {
-      console.error('Error fetching approved submissions:', error);
+      setError('Failed to fetch submissions');
+      console.error('Error fetching submissions:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleAction = (app, actionType) => {
+  const handleAction = async (app, actionType) => {
     setSelectedApp(app);
     setAction(actionType);
     setOpenDialog(true);
@@ -54,18 +60,35 @@ function HodPortal() {
   };
 
   const handleSubmit = async () => {
-    if (action === 'Reject' && !remarks.trim()) {
+    if (action === 'Rejected' && !remarks.trim()) {
       setError('Comments are required for rejection');
       return;
     }
 
+    const hodId = getIdFromToken('hod');
+
+    if (!hodId) {
+      setError('HOD ID not found');
+      return;
+    }
+
     try {
-      await createHodReview({
+      const response = await createHodReview({
         submission_id: selectedApp.id,
-        hod_id: localStorage.getItem('userId'),
+        hod_id: hodId,
         action: action,
-        remarks: remarks
+        remarks: remarks,
       });
+
+      if (response.noc_path && action === 'Approved') {
+        const nocUrl = response.noc_path;
+        const a = document.createElement('a');
+        a.href = nocUrl;
+        a.download = `${selectedApp.registration_number}_noc.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
 
       await fetchApprovedSubmissions();
       setOpenDialog(false);
@@ -73,11 +96,11 @@ function HodPortal() {
       setSelectedApp(null);
       setError('');
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to submit review');
+      setError('Failed to submit review');
     }
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
         <CircularProgress />
@@ -86,20 +109,62 @@ function HodPortal() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4, backgroundColor: '#f8f9fa' }}>
-        <Typography 
-          variant="h4" 
-          gutterBottom 
+    <Box
+    sx={{
+      minHeight: "140vh",
+          minWidth: "100vw",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          mt:-45,
+      backgroundColor: "#f8f9fa", // Full gray background
+      padding: 2,
+    }}
+  >
+    <Container
+      maxWidth="lg" disableGutters
+      sx={{
+        py: 4,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        backgroundColor: "#f8f9fa",
+      }}
+    >
+      <Paper elevation={3} sx={{
+        p: 4,
+        borderRadius: 2,
+        maxWidth: 1200,
+        margin: "0 auto", // Center align
+        backgroundColor: "#fff", // Keep the Paper white
+      }}
+      >
+        <Typography
+          variant="h4"
+          gutterBottom
           color="primary"
-          sx={{ mb: 4, fontWeight: 'bold', textAlign: 'center' }}
+          sx={{
+            mb: 4,
+            fontWeight: "bold",
+            textAlign: "center",
+            color: "#d05c24",
+          }}
         >
           HOD Portal - Application Review
         </Typography>
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
-              <TableRow sx={{ backgroundColor: '#1e4c90' }}>
+            <TableRow sx={{ backgroundColor: "#D97C4F" }}>
                 <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Reg. No.</TableCell>
                 <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Student Name</TableCell>
                 <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Department</TableCell>
@@ -113,46 +178,33 @@ function HodPortal() {
             <TableBody>
               {applications.map((app) => (
                 <TableRow key={app.id}>
-                  <TableCell>{app.registrationNumber}</TableCell>
-                  <TableCell>{app.studentName}</TableCell>
+                  <TableCell>{app.registration_number}</TableCell>
+                  <TableCell>{app.name}</TableCell>
                   <TableCell>{app.department}</TableCell>
-                  <TableCell>{app.companyName}</TableCell>
-                  <TableCell>{app.offerType}</TableCell>
-                  <TableCell>₹{app.stipend}</TableCell>
+                  <TableCell>{app.company_name}</TableCell>
+                  <TableCell>{app.offer_type}</TableCell>
+                  <TableCell>₹{app.stipend_amount}</TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', gap: 1 }}>
                       <Button
                         variant="contained"
                         color="success"
                         size="small"
-                        onClick={() => handleAction(app, 'accept')}
-                        disabled={app.hodStatus !== ''}
+                        onClick={() => handleAction(app, 'Approved')}
                       >
-                        Accept
+                        Approve
                       </Button>
                       <Button
                         variant="contained"
                         color="error"
                         size="small"
-                        onClick={() => handleAction(app, 'reject')}
-                        disabled={app.hodStatus !== ''}
+                        onClick={() => handleAction(app, 'Rejected')}
                       >
                         Reject
                       </Button>
                     </Box>
                   </TableCell>
-                  <TableCell sx={{ 
-                    backgroundColor: app.hodStatus === 'accept' ? '#e8f5e9' : 
-                                   app.hodStatus === 'reject' ? '#ffebee' : 
-                                   'transparent',
-                    color: app.hodStatus === 'accept' ? '#2e7d32' :
-                          app.hodStatus === 'reject' ? '#d32f2f' :
-                          'inherit',
-                    fontWeight: 'bold',
-                    textTransform: 'capitalize'
-                  }}>
-                    {app.hodStatus || ''}
-                  </TableCell>
+                  <TableCell>{app.status}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -160,9 +212,9 @@ function HodPortal() {
         </TableContainer>
       </Paper>
 
-      <Dialog 
-        open={openDialog} 
-        onClose={() => !isSubmitting && setOpenDialog(false)}
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
         maxWidth="sm"
         fullWidth
       >
@@ -177,37 +229,32 @@ function HodPortal() {
           )}
           <TextField
             fullWidth
-            label="Comments"
+            label="Remarks"
             multiline
             rows={4}
             value={remarks}
             onChange={(e) => setRemarks(e.target.value)}
-            required={action === 'reject'}
+            required={action === 'Rejected'}
             error={Boolean(error)}
             helperText={error}
             sx={{ mt: 1 }}
-            disabled={isSubmitting}
           />
         </DialogContent>
         <DialogActions sx={{ p: 2, backgroundColor: '#f8f9fa', borderTop: '1px solid #ddd' }}>
           <Button
             onClick={handleSubmit}
             variant="contained"
-            color={action === 'accept' ? 'success' : 'error'}
-            disabled={isSubmitting}
+            color={action === 'Approved' ? 'success' : 'error'}
           >
-            {isSubmitting ? <CircularProgress size={24} /> : 'Confirm'}
+            Confirm {action}
           </Button>
-          <Button 
-            onClick={() => setOpenDialog(false)} 
-            variant="outlined"
-            disabled={isSubmitting}
-          >
+          <Button onClick={() => setOpenDialog(false)} variant="outlined">
             Cancel
           </Button>
         </DialogActions>
       </Dialog>
     </Container>
+    </Box>
   );
 }
 

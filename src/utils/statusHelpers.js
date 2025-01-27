@@ -1,8 +1,8 @@
 export const getStatusColor = (status) => {
     switch (status) {
-      case 'accepted':
+      case 'Approved':
         return '#28a745'; // Green
-      case 'rejected':
+      case 'Rejected':
         return '#dc3545'; // Red
       case 'rework':
         return '#ffc107'; // Yellow

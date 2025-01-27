@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { loginReviewer, loginHod } from '../services/api';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { loginAdmin, loginHod, loginSpc } from "../services/api"; 
+import { CircularProgress } from "@mui/material";
+import logo from "./muj_header.png";
 
 import {
   Container,
@@ -10,164 +12,192 @@ import {
   Button,
   Box,
   Alert,
-} from '@mui/material';
+} from "@mui/material";
 
 function Login() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (e, role) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic validation
     if (!formData.email || !formData.password) {
-      setError('Please fill in all fields');
+      setError("Please fill in all fields");
       return;
     }
+
     setLoading(true);
+    setError("");
 
+    // List of login functions to try
+    const loginFunctions = [
+      { fn: loginAdmin, role: "admin", path: "/admin" },
+      { fn: loginHod, role: "hod", path: "/hod" },
+      { fn: loginSpc, role: "spc", path: "/spc" },
+    ];
 
-    // const trimmedEmail = formData.email.trim();
-    // const trimmedPassword = formData.password.trim();
-
-    // try {
-    //   console.log('Sending data:', { email: trimmedEmail, password: trimmedPassword });
-
-    //   const response = await fetch(`http://localhost:8080/${role}/login`, {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({
-    //       email: trimmedEmail,
-    //       password: trimmedPassword,
-    //     }),
-    //   });
-
+    for (const { fn, role, path } of loginFunctions) {
       try {
-        const loginFn = role === 'reviewer' ? loginReviewer : loginHod;
-        const response = await loginFn({
+        const response = await fn({
           email: formData.email,
-          password: formData.password
+          password: formData.password,
         });
-  
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('userRole', role);
-        localStorage.setItem('userId', response.id);
-        localStorage.setItem('isAuthenticated', 'true');
-        
-        navigate(role === 'reviewer' ? '/reviewer' : '/hod');
-      } catch (error) {
-        setError(error.response?.data?.error || 'Invalid credentials');
-      } finally {
-        setLoading(false);
+
+        // Store authentication details
+        localStorage.setItem("token", response.token);
+        localStorage.setItem("userRole", role);
+        localStorage.setItem("userId", response.id);
+        localStorage.setItem("isAuthenticated", "true");
+
+        // Navigate to the correct dashboard
+        navigate(path);
+        return;
+      } catch (err) {
+        // Log error, but do not show it yet
+        console.error(`Failed login for ${role}:`, err);
       }
-    };
-    const handleChange = (e) => {
-      setFormData({
-        ...formData,
-        [e.target.name]: e.target.value,
-      });
-      setError('');
-    };
-  
-  
+    }
 
-  //     if (response.ok) {
-  //       const data = await response.json();
-  //       localStorage.setItem('token', data.token);
+    // If all logins fail, show error
+    setError("Invalid credentials. Please try again.");
+    setLoading(false);
+  };
 
-  //       if (role === 'reviewer') {
-  //         navigate('/reviewer/submissions');
-  //       } else if (role === 'hod') {
-  //         navigate('/hod/submissions/approved');
-  //       }
-  //     } else {
-  //       const errorData = await response.json();
-  //       setError(errorData.error || 'Invalid credentials');
-  //     }
-  //   } catch (err) {
-  //     console.error('Error logging in:', err);
-  //     setError('Something went wrong. Please try again.');
-  //   }
-  // };
-
-  
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+    setError("");
+  };
 
   return (
-    <>
-      <div className="app-header">
+    <Box
+      sx={{
+        minHeight: "100vh",
+        minWidth: "100vw",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#f9f9f9",
+        color: "#1e4c90",
+        padding: 2,
+      }}
+    >
+      <>
+        {/* Logo at the top */}
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            mt:-20
+             // Add margin to push content below
+          }}
+        >
+          <img
+            src={logo}
+            alt="Manipal University Jaipur"
+            style={{
+              maxWidth: "500px", // Increased size
+              height: "auto",
+            }}
+          />
+        </Box>
+  
+        {/* Title and Instructions */}
         <Container>
-          <Typography variant="h4" align="center" sx={{ color: 'black' }}>
-            Staff Login Portal
+          <Typography
+            variant="h4"
+            align="center"
+            sx={{
+              mb: 8,
+              mt: -3,
+              fontWeight: "bold",
+              color: "#334e90",
+            }}
+          >
+            Welcome to the Login Portal
           </Typography>
+         
         </Container>
-      </div>
-      <Container maxWidth="sm">
-        <Paper className="login-container">
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-          <form>
-            <Box sx={{ mb: 3 }}>
-              <TextField
-                fullWidth
-                label="Email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                variant="outlined"
-                sx={{ backgroundColor: 'white' }}
-              />
-            </Box>
-            <Box sx={{ mb: 4 }}>
-              <TextField
-                fullWidth
-                label="Password"
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                variant="outlined"
-                sx={{ backgroundColor: 'white' }}
-              />
-            </Box>
-            <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
-              {['hod', 'reviewer'].map((role) => (
-                <Button
-                  key={role}
+  
+        {/* Login Form */}
+        <Container maxWidth="sm">
+          <Paper
+            sx={{
+              p: 4,
+              borderRadius: 1.5,
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#ffffff",
+              border: "1px solid #e0e0e0",
+            }}
+          >
+            {error && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {error}
+              </Alert>
+            )}
+            <form onSubmit={handleSubmit}>
+              <Box sx={{ mb: 3 }}>
+                <TextField
                   fullWidth
+                  label="Email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  variant="outlined"
+                  sx={{ backgroundColor: "#fdfdfd" }}
+                />
+              </Box>
+              <Box sx={{ mb: 4 }}>
+                <TextField
+                  fullWidth
+                  label="Password"
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  variant="outlined"
+                  sx={{ backgroundColor: "#fdfdfd" }}
+                />
+              </Box>
+              <Box sx={{ textAlign: "center" }}>
+                <Button
+                  type="submit"
                   variant="contained"
-                  color={role === 'hod' ? 'primary' : 'secondary'}
+                
                   size="large"
-                  onClick={(e) => handleSubmit(e, role)}
+                  disabled={loading}
                   sx={{
                     py: 1.5,
-                    backgroundColor: role === 'hod' ? '#1976d2' : '#2e7d32',
-                    '&:hover': {
-                      backgroundColor: role === 'hod' ? '#1565c0' : '#1b5e20',
-                    },
+                    px: 7,
+                    fontWeight: "bold",
+                    color:'white',
+                    backgroundColor:'#d05c24',
+                    borderRadius: 2,
+                    textTransform: "none",
+                    boxShadow: "0 4px 8px rgba(255, 165, 0, 0.3)",
                   }}
                 >
-                  Login as {role.toUpperCase()}
+                  {loading ? <CircularProgress size={24} color="inherit" /> : "LOGIN"}
                 </Button>
-              ))}
-            </Box>
-          </form>
-        </Paper>
-      </Container>
-    </>
-  );
+              </Box>
+            </form>
+          </Paper>
+        </Container>
+      </>
+    </Box>
+  );  
 }
 
 export default Login;

@@ -1,10 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import StudentForm from './components/StudentForm';
-import ReviewerPortal from './components/ReviewerPortal';
+import SpcPortal from './components/SpcPortal';
 import HodPortal from './components/HodPortal';
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminPortal from './components/AdminPortal'; // Import AdminPortal
 
 function App() {
   return (
@@ -13,10 +14,10 @@ function App() {
         <Route path="/" element={<StudentForm />} />
         <Route path="/login" element={<Login />} />
         <Route
-          path="/reviewer"
+          path="/spc"
           element={
-            <ProtectedRoute role="reviewer">
-              <ReviewerPortal />
+            <ProtectedRoute role="spc">
+              <SpcPortal />
             </ProtectedRoute>
           }
         />
@@ -28,6 +29,15 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute role="admin"> {/* Protect the AdminPortal */}
+              <AdminPortal />
+            </ProtectedRoute>
+          }
+        />
+     
       </Routes>
     </Router>
   );
