@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginAdmin, loginHod, loginSpc } from "../services/api"; 
+import { loginAdmin, loginHod, loginFpc } from "../services/api"; 
 import { CircularProgress } from "@mui/material";
 import logo from "./muj_header.png";
 
@@ -38,7 +38,7 @@ function Login() {
     const loginFunctions = [
       { fn: loginAdmin, role: "admin", path: "/admin" },
       { fn: loginHod, role: "hod", path: "/hod" },
-      { fn: loginSpc, role: "spc", path: "/spc" },
+      { fn: loginFpc, role: "fpc", path: "/fpc" },
     ];
 
     for (const { fn, role, path } of loginFunctions) {

@@ -26,7 +26,6 @@ const validationSchema = yup.object({
       "Enter your official mail id"
     )
     .required("Email is required"),
-
   mobile: yup
     .string()
     .matches(/^[0-9]{10}$/, "Mobile number must be 10 digits")
@@ -44,10 +43,9 @@ const validationSchema = yup.object({
     .matches(/^[0-9]{6}$/, "PIN code must be 6 digits")
     .required("PIN code is required"),
   internshipType: yup.string().required("Internship type is required"),
-  hrdEmail: yup
-    .string()
-    .email("Enter a valid email")
-    .required("HRD Email is required"),
+  hrdEmail: yup.string().email("Enter a valid email"),
+  hrdNumber: yup.string().matches(/^[0-9]{10}$/, "Enter a valid 10-digit number"),
+  hasOfferLetter: yup.boolean(),
   ppoPackage: yup.number().when("internshipType", {
     is: "Internship with PPO",
     then: () =>
@@ -67,26 +65,34 @@ const validationSchema = yup.object({
     .required("Start date is required")
     .min(new Date(), "Start date cannot be in the past"),
   endDate: yup.date().required("End date is required"),
-  //.min(yup.ref('startDate'), 'End date must be after start date'),
   termsAccepted: yup
     .boolean()
     .oneOf([true], "Must accept terms and conditions"),
+}).test('hrdContact', 'Either HRD Email or HRD Number is required', function(value) {
+  if (!value.hrdEmail && !value.hrdNumber) {
+    return this.createError({
+      path: 'hrdEmail',
+      message: 'Either HRD Email or HRD Number is required'
+    });
+  }
+  return true;
 });
 
 function StudentForm() {
   const SUPPORTED_FORMATS = ["application/pdf"];
   const FILE_SIZE = 5 * 1024 * 1024; // 5MB
   const [formErrors, setFormErrors] = useState([]);
-  const [state, setState] = useState("");
   const [offerLetter, setOfferLetter] = useState(null);
   const [mailCopy, setMailCopy] = useState(null);
   const [fileError, setFileError] = useState("");
   const [submissionStatus, setSubmissionStatus] = useState("");
 
-  const validateFile = (file) => {
-    if (!file) return "File is required";
-    if (!SUPPORTED_FORMATS.includes(file.type)) return "File must be a PDF";
-    if (file.size > FILE_SIZE) return "File size must be less than 5MB";
+  const validateFile = (file, isRequired) => {
+    if (!file && isRequired) return "File is required";
+    if (file) {
+      if (!SUPPORTED_FORMATS.includes(file.type)) return "File must be a PDF";
+      if (file.size > FILE_SIZE) return "File size must be less than 5MB";
+    }
     return "";
   };
 
@@ -108,19 +114,18 @@ function StudentForm() {
       stipend: "",
       startDate: "",
       endDate: "",
+      hasOfferLetter: false,
+      hrdEmail: "",
+      hrdNumber: "",
       termsAccepted: false,
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
-      const offerLetterError = validateFile(offerLetter);
-      const mailCopyError = validateFile(mailCopy);
-      const errors = [];
-      if (offerLetterError || mailCopyError) {
-        setFileError(offerLetterError || mailCopyError);
-        return;
-      }
-      if (errors.length > 0) {
-        setFormErrors(errors);
+      const mailCopyError = validateFile(mailCopy, true);
+      const offerLetterError = validateFile(offerLetter, values.hasOfferLetter);
+      
+      if (mailCopyError || offerLetterError) {
+        setFileError(mailCopyError || offerLetterError);
         return;
       }
 
@@ -129,47 +134,20 @@ function StudentForm() {
       Object.entries(values).forEach(([key, value]) => {
         formData.append(key, value);
       });
-      formData.append("offerLetter", offerLetter);
       formData.append("mailCopy", mailCopy);
-
-      //       try {
-      //         // Send POST request to /submit
-      //         // const response = await axios.post('http://localhost:8080/submit', formData, {
-      //         //   headers: { 'Content-Type': 'multipart/form-data' },
-      //         // });
-      //         try {
-      //           await submitApplication(formData);
-      //         console.log('Success:', response.data);
-      //         setSubmissionStatus('Form submitted successfully!');
-      //       } catch (error) {
-      //         const errorMessage = error.response?.data?.message || 'Failed to submit the form. Please try again.';
-      //         console.error('Error details:', error.response?.data || error.message);
-      //         setSubmissionStatus(errorMessage);
-      //       }
-
-      // },
-      //   });
+      if (values.hasOfferLetter && offerLetter) {
+        formData.append("offerLetter", offerLetter);
+      }
 
       try {
-        const formData = new FormData();
-        Object.entries(values).forEach(([key, value]) => {
-          formData.append(key, value);
-        });
-        formData.append("offerLetter", offerLetter);
-        formData.append("mailCopy", mailCopy);
-
         await submitApplication(formData);
-
-        // Reset form
         formik.resetForm();
         setOfferLetter(null);
         setMailCopy(null);
         setFormErrors([]);
-        // Show success message
+        setSubmissionStatus("Application submitted successfully!");
       } catch (error) {
-        setFormErrors([
-          error.response?.data?.message || "Failed to submit application",
-        ]);
+        setSubmissionStatus(error.response?.data?.message || "Failed to submit application");
       }
     },
   });
@@ -544,6 +522,7 @@ function StudentForm() {
                   InputLabelProps={{ shrink: true }}
                 />
               </Grid>
+              {/* HRD Contact Section */}
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -552,24 +531,48 @@ function StudentForm() {
                   label="HRD Email"
                   value={formik.values.hrdEmail}
                   onChange={formik.handleChange}
-                  error={
-                    formik.touched.hrdEmail && Boolean(formik.errors.hrdEmail)
-                  }
+                  error={formik.touched.hrdEmail && Boolean(formik.errors.hrdEmail)}
                   helperText={formik.touched.hrdEmail && formik.errors.hrdEmail}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  id="hrdNumber"
+                  name="hrdNumber"
+                  label="HRD Contact Number"
+                  value={formik.values.hrdNumber}
+                  onChange={formik.handleChange}
+                  error={formik.touched.hrdNumber && Boolean(formik.errors.hrdNumber)}
+                  helperText={formik.touched.hrdNumber && formik.errors.hrdNumber}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      name="hasOfferLetter"
+                      checked={formik.values.hasOfferLetter}
+                      onChange={formik.handleChange}
+                    />
+                  }
+                  label="I have an offer letter to upload"
                 />
               </Grid>
               <Grid item xs={12}>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle1" gutterBottom>
-                      Offer Letter (PDF only)
-                    </Typography>
-                    <input
-                      accept="application/pdf"
-                      type="file"
-                      onChange={(e) => setOfferLetter(e.target.files[0])}
-                    />
-                  </Grid>
+                  {formik.values.hasOfferLetter && (
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Offer Letter (PDF only)
+                      </Typography>
+                      <input
+                        accept="application/pdf"
+                        type="file"
+                        onChange={(e) => setOfferLetter(e.target.files[0])}
+                      />
+                    </Grid>
+                  )}
                   <Grid item xs={12} sm={6}>
                     <Typography variant="subtitle1" gutterBottom>
                       Mail Copy (PDF only)

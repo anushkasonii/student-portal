@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import StudentForm from './components/StudentForm';
-import SpcPortal from './components/SpcPortal';
+import FpcPortal from './components/FpcPortal';
 import HodPortal from './components/HodPortal';
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -14,10 +14,10 @@ function App() {
         <Route path="/" element={<StudentForm />} />
         <Route path="/login" element={<Login />} />
         <Route
-          path="/spc"
+          path="/fpc"
           element={
-            <ProtectedRoute role="spc">
-              <SpcPortal />
+            <ProtectedRoute role="fpc">
+              <FpcPortal />
             </ProtectedRoute>
           }
         />

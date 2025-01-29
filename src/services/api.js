@@ -30,8 +30,8 @@ const mainApi = axios.create({
 });
 
 // Auth endpoints (Main service)
-export const loginSpc = async (credentials) => {
-  const response = await mainApi.post('/spc/login', credentials);
+export const loginFpc = async (credentials) => {
+  const response = await mainApi.post('/fpc/login', credentials);
   return response.data;
 };
 
@@ -56,7 +56,7 @@ export const submitApplication = async (formData) => {
 // Review endpoints (Main service)
 export const getSubmissions = async () => {
   try {
-    const response = await mainApi.get('/spc/submissions');
+    const response = await mainApi.get('/fpc/submissions');
     if (response.data && Array.isArray(response.data.submissions)) {
       return response.data.submissions; // Extract the submissions array
     } else {
@@ -83,7 +83,7 @@ export const getApprovedSubmissions = async () => {
 };
 
 export const createReview = async (reviewData) => {
-  const response = await mainApi.post('/spc/spc_reviews', reviewData);
+  const response = await mainApi.post('/fpc/fpc_reviews', reviewData);
   return response.data;
 };
 
@@ -98,9 +98,9 @@ export const getHods = async () => {
   return response.data; // Assuming the API returns a list of HODs
 };
 
-export const getSpcs = async () => {
-  const response = await mainApi.get('/admin/spcs');
-  return response.data; // Assuming the API returns a list of SPCs
+export const getFpcs = async () => {
+  const response = await mainApi.get('/admin/fpcs');
+  return response.data; // Assuming the API returns a list of FPCs
 };
 
 export const createHod = async (hodData) => {
@@ -108,9 +108,9 @@ export const createHod = async (hodData) => {
   return response.data; // Assuming the API returns the created HOD
 };
 
-export const createSpc = async (spcData) => {
-  const response = await mainApi.post('/admin/spc', spcData);
-  return response.data; // Assuming the API returns the created SPC
+export const createFpc = async (fpcData) => {
+  const response = await mainApi.post('/admin/fpc', fpcData);
+  return response.data; // Assuming the API returns the created FPC
 };
 
 export { submissionApi, mainApi };

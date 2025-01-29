@@ -23,7 +23,7 @@ import {
 } from "@mui/material";
 import { getSubmissions, createReview } from "../services/api";
 
-function SpcPortal() {
+function FpcPortal() {
   const [applications, setApplications] = useState([]);
   const [selectedApp, setSelectedApp] = useState(null);
   const [remarks, setRemarks] = useState("");
@@ -78,26 +78,26 @@ function SpcPortal() {
 
   const handleSubmit = async () => {
     // Validate comment for reject/rework actions
-    if ((action === "Reject" || action === "Rework") && !remarks.trim()) {
-      setError("Comments are required for reject/rework actions");
+    if (action === "Reject" && !remarks.trim()) {
+      setError("Comments are required for reject actions");
       return;
     }
 
-    // Get spc or HOD ID based on role
-    const spcId = getIdFromToken("spc"); // Use the utility function to fetch spc ID
-    if (!spcId) {
-      setError("Failed to fetch spc ID");
+    // Get fpc or HOD ID based on role
+    const fpcId = getIdFromToken("fpc"); // Use the utility function to fetch fpc ID
+    if (!fpcId) {
+      setError("Failed to fetch fpc ID");
       return;
     }
 
     // Construct the review data
     const reviewData = {
       submission_id: selectedApp.id,
-      spc_id: spcId, // Use the fetched spc ID
+      fpc_id: fpcId, // Use the fetched fpc ID
       status:
         action === "Approve"
           ? "Approved"
-          : action === "Reject"
+          :"Rejected"
           ? "Rejected"
           : "Rework",
       comments: action === "Approve" ? "" : remarks.trim(),
@@ -291,14 +291,6 @@ function SpcPortal() {
                           >
                             Reject
                           </Button>
-                          <Button
-                            variant="contained"
-                            color="warning"
-                            size="small"
-                            onClick={() => handleActionClick(app, "Rework")}
-                          >
-                            Rework
-                          </Button>
                         </Box>
                       </TableCell>
                       <TableCell>{app.status}</TableCell>
@@ -383,4 +375,4 @@ function SpcPortal() {
   );
 }
 
-export default SpcPortal;
+export default FpcPortal;

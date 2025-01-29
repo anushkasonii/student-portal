@@ -19,15 +19,15 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
-import { getHods, getSpcs, createHod, createSpc } from "../services/api";
+import { getHods, getFpcs, createHod, createFpc } from "../services/api";
 
 function AdminPortal() {
   const [hods, setHods] = useState([]);
-  const [spcs, setSpcs] = useState([]);
+  const [fpcs, setFpcs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
-  const [dialogType, setDialogType] = useState(""); // "hod" or "spc"
+  const [dialogType, setDialogType] = useState(""); // "hod" or "fpc"
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -43,9 +43,9 @@ function AdminPortal() {
     try {
       setLoading(true);
       const fetchedHods = await getHods();
-      const fetchedSpcs = await getSpcs();
+      const fetchedFpcs = await getFpcs();
       setHods(fetchedHods);
-      setSpcs(fetchedSpcs);
+      setFpcs(fetchedFpcs);
       setError("");
     } catch (err) {
       setError("Failed to fetch data");
@@ -75,8 +75,8 @@ function AdminPortal() {
     try {
       if (dialogType === "hod") {
         await createHod(formData);
-      } else if (dialogType === "spc") {
-        await createSpc(formData);
+      } else if (dialogType === "fpc") {
+        await createFpc(formData);
       }
       fetchData(); // Refresh data
       handleCloseDialog();
@@ -180,9 +180,9 @@ function AdminPortal() {
             Add HOD
           </Button>
 
-          {/* SPCs Table */}
+          {/* FPCs Table */}
           <Typography variant="h5" sx={{ mb: 2, color: "#d05c24" }}>
-            List of SPCs
+            List of FPCs
           </Typography>
           <TableContainer component={Paper}>
             <Table>
@@ -197,10 +197,10 @@ function AdminPortal() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {spcs.map((spc) => (
-                  <TableRow key={spc.id}>
-                    <TableCell>{spc.name}</TableCell>
-                    <TableCell>{spc.email}</TableCell>
+                {fpcs.map((fpc) => (
+                  <TableRow key={fpc.id}>
+                    <TableCell>{fpc.name}</TableCell>
+                    <TableCell>{fpc.email}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -214,13 +214,13 @@ function AdminPortal() {
               color: "white",
               "&:hover": { backgroundColor: "#bf4e1f" },
             }}
-            onClick={() => handleOpenDialog("spc")}
+            onClick={() => handleOpenDialog("fpc")}
           >
-            Add SPC
+            Add FPC
           </Button>
         </Paper>
 
-        {/* Dialog for Adding HOD/SPC */}
+        {/* Dialog for Adding HOD/FPC */}
         <Dialog open={openDialog} onClose={handleCloseDialog}>
           <DialogTitle
             sx={{
@@ -229,7 +229,7 @@ function AdminPortal() {
               textAlign: "center",
             }}
           >
-            ADD {dialogType === "hod" ? "HOD" : "SPC"}
+            ADD {dialogType === "hod" ? "HOD" : "FPC"}
           </DialogTitle>
           <DialogContent>
             {error && (
