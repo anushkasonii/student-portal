@@ -105,6 +105,7 @@ function StudentForm() {
       department: "",
       section: "",
       offerType: "",
+      
       companyName: "",
       companyCity: "",
       companyState: "",

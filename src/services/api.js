@@ -45,6 +45,15 @@ export const loginAdmin = async (credentials) => {
   return response.data;
 };
 
+// App Password Management
+export const updateAppPassword = async (role, userId, newAppPassword) => {
+  const response = await mainApi.post(`/${role}/update-app-password`, {
+    id: userId,
+    app_password: newAppPassword
+  });
+  return response.data;
+};
+
 // Submission endpoints (Submission service)
 export const submitApplication = async (formData) => {
   const response = await submissionApi.post('/submit', formData, {
@@ -58,7 +67,7 @@ export const getSubmissions = async () => {
   try {
     const response = await mainApi.get('/fpc/submissions');
     if (response.data && Array.isArray(response.data.submissions)) {
-      return response.data.submissions; // Extract the submissions array
+      return response.data.submissions;
     } else {
       throw new Error('Invalid data format or submissions key missing');
     }
@@ -72,7 +81,7 @@ export const getApprovedSubmissions = async () => {
   try {
     const response = await mainApi.get('/hod/approved_submissions');
     if (response.data && Array.isArray(response.data.submissions)) {
-      return response.data.submissions; // Extract the submissions array
+      return response.data.submissions;
     } else {
       throw new Error('Invalid data format or submissions key missing');
     }
@@ -95,22 +104,22 @@ export const createHodReview = async (reviewData) => {
 // Admin endpoints (Main service)
 export const getHods = async () => {
   const response = await mainApi.get('/admin/hods');
-  return response.data; // Assuming the API returns a list of HODs
+  return response.data;
 };
 
 export const getFpcs = async () => {
   const response = await mainApi.get('/admin/fpcs');
-  return response.data; // Assuming the API returns a list of FPCs
+  return response.data;
 };
 
 export const createHod = async (hodData) => {
   const response = await mainApi.post('/admin/hod', hodData);
-  return response.data; // Assuming the API returns the created HOD
+  return response.data;
 };
 
 export const createFpc = async (fpcData) => {
   const response = await mainApi.post('/admin/fpc', fpcData);
-  return response.data; // Assuming the API returns the created FPC
+  return response.data;
 };
 
 export { submissionApi, mainApi };
