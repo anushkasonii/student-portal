@@ -64,8 +64,22 @@ function FpcPortal() {
       setRemarks(""); // No comment is required for approve action
     }
     setOpenDialog(true);
+    setRemarks(""); // Reset remarks field
     setError("");
   };
+  const getStatusTextColor = (status) => {
+    switch (status) {
+        case "Approved":
+            return "black"; 
+        case "Rejected":
+            return "black"; 
+        case "Rework":
+            return "black"; 
+        default:
+            return "#000000"; // Black (Default)
+    }
+};
+
 
   const validatePdf = (pdfPath) => {
     // Validate file size and check for spaces in filename
@@ -82,30 +96,51 @@ function FpcPortal() {
       setError("Comments are required for reject actions");
       return;
     }
-  
+
     const fpcId = getIdFromToken("fpc");
     if (!fpcId) {
       setError("Failed to fetch FPC ID");
       return;
     }
-  
+
     const reviewData = {
       submission_id: selectedApp.id,
       fpc_id: fpcId,
       status: action,
       comments: action === "Approve" ? "" : remarks.trim(),
     };
-    
+    console.log("Sending reviewData:", reviewData); // Debugging Log
+
     try {
-      await createFpcReview(reviewData);
+      const response = await createFpcReview(reviewData);
+      console.log("Response from backend:", response);
+
+      
+      setApplications((prevApps) =>
+        prevApps.map((app) =>
+          app.id === selectedApp.id
+            ? { ...app, status: action, comments: remarks.trim() }
+            : app
+        )
+      );
       setOpenDialog(false);
-      fetchSubmissions();  // Refresh table
+      setSelectedApp(null);
+      setRemarks("");
+      setError(""); // Clear any previous errors
     } catch (error) {
       console.error("Error submitting review:", error);
+      // Update UI even if API fails
+      setApplications((prevApps) =>
+        prevApps.map((app) =>
+          app.id === selectedApp.id
+            ? { ...app, status: action, comments: remarks.trim() }
+            : app
+        )
+      );
+
       setError(error.response?.data?.error || "Failed to submit review");
     }
   };
-  
 
   if (loading) {
     return (
@@ -130,7 +165,7 @@ function FpcPortal() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        
+
         backgroundColor: "#f8f9fa", // Full gray background
         padding: 2,
         overflowX: "hidden",
@@ -144,7 +179,7 @@ function FpcPortal() {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-         
+
           // minHeight: "100vh",
           backgroundColor: "#f8f9fa",
         }}
@@ -154,7 +189,7 @@ function FpcPortal() {
           sx={{
             p: 5,
             borderRadius: 2,
-            
+
             width: "95%",
             maxWidth: 1300,
             margin: "0 auto", // Center align
@@ -258,7 +293,7 @@ function FpcPortal() {
                     }}
                   >
                     Internship Type
-                  </TableCell> 
+                  </TableCell>
                   <TableCell
                     sx={{
                       textAlign: "center",
@@ -268,7 +303,7 @@ function FpcPortal() {
                     }}
                   >
                     PPO Package (LPA)
-                  </TableCell> 
+                  </TableCell>
                   <TableCell
                     sx={{
                       textAlign: "center",
@@ -324,16 +359,16 @@ function FpcPortal() {
                     const mailCopyError = validatePdf(app.mail_copy_path);
                     return (
                       <TableRow
-                        key={app.id}
-                        sx={{
-                          backgroundColor:
-                            app.status === "Approved"
-                              ? "#A3CE71"
-                              : app.status === "Rejected"
-                              ? "#F16257"
-                              : "inherit",
-                        }}
-                      >
+    key={app.id}
+    sx={{
+        backgroundColor:
+            app.status === "Approved"
+                ? "#BDE7BD"
+                : app.status === "Rejected"
+                ? "#FF8E85"
+                : "inherit",
+    }}
+>
                         <TableCell
                           sx={{ textAlign: "center", fontSize: "1rem" }}
                         >
@@ -367,13 +402,15 @@ function FpcPortal() {
                         <TableCell
                           sx={{ textAlign: "center", fontSize: "1rem" }}
                         >
-                            {app.offer_type_detail}
-                        </TableCell> {/* Add Internship Type column */}
+                          {app.offer_type_detail}
+                        </TableCell>{" "}
+                        {/* Add Internship Type column */}
                         <TableCell
                           sx={{ textAlign: "center", fontSize: "1rem" }}
                         >
                           {app.package_ppo ? app.package_ppo : "-"}
-                        </TableCell> {/* Add PPO Package column */}
+                        </TableCell>{" "}
+                        {/* Add PPO Package column */}
                         <TableCell
                           sx={{ textAlign: "center", fontSize: "1rem" }}
                         >
@@ -409,7 +446,7 @@ function FpcPortal() {
                           )}
                         </TableCell>
                         <TableCell>
-                          {app.status === "Pending" && (
+                          {app.status === "Pending" ? (
                             <Box
                               sx={{
                                 display: "flex",
@@ -422,7 +459,7 @@ function FpcPortal() {
                                 color="success"
                                 size="small"
                                 onClick={() =>
-                                  handleActionClick(app, "Approve")
+                                  handleActionClick(app, "Approved")
                                 }
                               >
                                 Approve
@@ -431,11 +468,22 @@ function FpcPortal() {
                                 variant="contained"
                                 color="error"
                                 size="small"
-                                onClick={() => handleActionClick(app, "Reject")}
+                                onClick={() =>
+                                  handleActionClick(app, "Rejected")
+                                }
                               >
                                 Reject
                               </Button>
                             </Box>
+                          ) : (
+                            <Typography
+                              sx={{
+                                fontWeight: "bold",
+                                color: getStatusTextColor(app.status),
+                              }}
+                            >
+                              {app.status}
+                            </Typography>
                           )}
                         </TableCell>
                         <TableCell>{app.status}</TableCell>

@@ -35,8 +35,8 @@ function HodPortal() {
   const [nocUrl, setNocUrl] = useState("");
 
   useEffect(() => {
-    fetchApprovedSubmissions("Internship NOC"); 
-    fetchApprovedSubmissions("Generic NOC");    
+    fetchApprovedSubmissions("Specific"); 
+    fetchApprovedSubmissions("Generic");    
   }, []);
   
   
@@ -57,6 +57,7 @@ function HodPortal() {
         setLoading(false);
     }
 };
+
 
 
   const handleAction = async (app, actionType) => {
@@ -116,7 +117,8 @@ function HodPortal() {
         setNocUrl(response.noc_path);
       }
 
-      await fetchApprovedSubmissions();
+      await fetchApprovedSubmissions(selectedApp.noc_type);
+
       setOpenDialog(false);
       setRemarks("");
       setSelectedApp(null);

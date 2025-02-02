@@ -89,7 +89,7 @@ function AdminPortal() {
       const payload = {
         name: formData.name,
         email: formData.email,
-        app_password: formData.password,  // Storing the raw password as app_password
+        app_password: passwordHash,   
         department: formData.department,
       };
   
