@@ -15,68 +15,83 @@ import {
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { submitApplication } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
-const validationSchema = yup.object({
-  registrationNumber: yup.string().required("Registration number is required"),
-  name: yup.string().required("Name is required"),
-  email: yup
-    .string()
-    .matches(
-      /^[a-zA-Z]+\.[0-9]{9}@muj\.manipal\.edu$/,
-      "Enter your official mail id"
-    )
-    .required("Email is required"),
-  mobile: yup
-    .string()
-    .matches(/^[0-9]{10}$/, "Mobile number must be 10 digits")
-    .required("Mobile number is required"),
-  department: yup.string().required("Department is required"),
-  semester: yup.number().required("Semester is required"),
-  gender: yup.string().required("Gender is required"),
-  section: yup.string().required("Section is required"),
-  offerType: yup.string().required("Offer type is required"),
-  companyName: yup.string().required("Company name is required"),
-  companyCity: yup.string().required("City is required"),
-  companyState: yup.string().required("State is required"),
-  companyPin: yup
-    .string()
-    .matches(/^[0-9]{6}$/, "PIN code must be 6 digits")
-    .required("PIN code is required"),
-  internshipType: yup.string().required("Internship type is required"),
-  hrdEmail: yup.string().email("Enter a valid email"),
-  hrdNumber: yup.string().matches(/^[0-9]{10}$/, "Enter a valid 10-digit number"),
-  hasOfferLetter: yup.boolean(),
-  ppoPackage: yup.number().when("internshipType", {
-    is: "Internship with PPO",
-    then: () =>
-      yup
-        .number()
-        .required("PPO package is required")
-        .positive("Package must be positive")
-        .typeError("Please enter a valid number"),
-  }),
-  stipend: yup
-    .number()
-    .required("Stipend amount is required")
-    .positive("Stipend must be positive")
-    .typeError("Please enter a valid number"),
-  startDate: yup
-    .date()
-    .required("Start date is required")
-    .min(new Date(), "Start date cannot be in the past"),
-  endDate: yup.date().required("End date is required"),
-  termsAccepted: yup
-    .boolean()
-    .oneOf([true], "Must accept terms and conditions"),
-}).test('hrdContact', 'Either HRD Email or HRD Number is required', function(value) {
-  if (!value.hrdEmail && !value.hrdNumber) {
-    return this.createError({
-      path: 'hrdEmail',
-      message: 'Either HRD Email or HRD Number is required'
-    });
-  }
-  return true;
-});
+const validationSchema = yup
+  .object({
+    registrationNumber: yup
+      .string()
+      .required("Registration Number is required"),
+    name: yup.string().required("Name is required"),
+    email: yup
+      .string()
+      .matches(
+        /^[a-zA-Z]+\.[0-9]{9}@muj\.manipal\.edu$/,
+        "Enter your official mail id"
+      )
+      .required("Email is required"),
+    mobile: yup
+      .string()
+      .matches(/^[0-9]{10}$/, "Mobile Number must be 10 digits")
+      .required("Mobile Number is required"),
+    department: yup.string().required("Department is required"),
+    semester: yup.number().required("Semester is required"),
+    gender: yup.string().required("Gender is required"),
+    section: yup.string().required("Section is required"),
+    offerType: yup.string().required("Offer Type is required"),
+    companyName: yup
+      .string()
+      .required("Company name is required")
+      .matches(
+        /^[A-Z][a-zA-Z\s]*$/,
+        "The first letter of the company name should be capital"
+      ),
+
+    companyCity: yup.string().required("City is required"),
+    companyState: yup.string().required("State is required"),
+    companyPin: yup
+      .string()
+      .matches(/^[0-9]{6}$/, "PIN code must be 6 digits")
+      .required("PIN code is required"),
+    internshipType: yup.string().required("Internship type is required"),
+    hrdEmail: yup.string().email("Enter a valid email"),
+    hrdNumber: yup
+      .string()
+      .matches(/^[0-9]{10}$/, "Enter a valid 10-digit number"),
+    hasOfferLetter: yup.boolean(),
+    ppoPackage: yup.number().when("internshipType", {
+      is: "Internship with PPO",
+      then: () =>
+        yup
+          .number()
+          .required("PPO package is required")
+          .positive("Package must be positive")
+          .typeError("Please enter a valid number"),
+    }),
+    stipend: yup
+      .number()
+      .required("Stipend amount is required")
+      .positive("Stipend must be positive")
+      .typeError("Please enter a valid number"),
+    startDate: yup.date().required("Start date is required"),
+    endDate: yup.date().required("End date is required"),
+    termsAccepted: yup
+      .boolean()
+      .oneOf([true], "Must accept terms and conditions"),
+  })
+  .test(
+    "hrdContact",
+    "Either HRD Email or HRD Number is required",
+    function (value) {
+      if (!value.hrdEmail && !value.hrdNumber) {
+        return this.createError({
+          path: "hrdEmail",
+          message: "Either HRD Email or HRD Number is required",
+        });
+      }
+      return true;
+    }
+  );
 
 function StudentForm() {
   const SUPPORTED_FORMATS = ["application/pdf"];
@@ -86,15 +101,20 @@ function StudentForm() {
   const [mailCopy, setMailCopy] = useState(null);
   const [fileError, setFileError] = useState("");
   const [submissionStatus, setSubmissionStatus] = useState("");
+  const [mailCopyError, setMailCopyError] = useState("");
+  const [offerLetterError, setOfferLetterError] = useState("");
 
   const validateFile = (file, isRequired) => {
     if (!file && isRequired) return "File is required";
     if (file) {
       if (!SUPPORTED_FORMATS.includes(file.type)) return "File must be a PDF";
       if (file.size > FILE_SIZE) return "File size must be less than 5MB";
+      if (file.name.includes(" ")) return "File name must not contain spaces";
     }
     return "";
   };
+
+  const navigate = useNavigate();
 
   const formik = useFormik({
     initialValues: {
@@ -105,7 +125,8 @@ function StudentForm() {
       department: "",
       section: "",
       offerType: "",
-      
+      semester: "",
+      gender: "",
       companyName: "",
       companyCity: "",
       companyState: "",
@@ -122,11 +143,13 @@ function StudentForm() {
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
-      const mailCopyError = validateFile(mailCopy, true);
-      const offerLetterError = validateFile(offerLetter, values.hasOfferLetter);
-      
-      if (mailCopyError || offerLetterError) {
-        setFileError(mailCopyError || offerLetterError);
+      const mailCopyErr = validateFile(mailCopy, true);
+      const offerLetterErr = validateFile(offerLetter, values.hasOfferLetter);
+
+      setMailCopyError(mailCopyErr);
+      setOfferLetterError(offerLetterErr);
+
+      if (mailCopyErr || offerLetterErr) {
         return;
       }
 
@@ -147,8 +170,12 @@ function StudentForm() {
         setMailCopy(null);
         setFormErrors([]);
         setSubmissionStatus("Application submitted successfully!");
+        // Redirect to the success page
+        navigate("/success");
       } catch (error) {
-        setSubmissionStatus(error.response?.data?.message || "Failed to submit application");
+        setSubmissionStatus(
+          error.response?.data?.message || "Failed to submit application"
+        );
       }
     },
   });
@@ -208,8 +235,7 @@ function StudentForm() {
           )}
           <form onSubmit={formik.handleSubmit}>
             <Grid container spacing={3}>
-
-            <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   id="name"
@@ -240,7 +266,7 @@ function StudentForm() {
                   }
                 />
               </Grid>
-              
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -532,7 +558,9 @@ function StudentForm() {
                   label="HRD Email"
                   value={formik.values.hrdEmail}
                   onChange={formik.handleChange}
-                  error={formik.touched.hrdEmail && Boolean(formik.errors.hrdEmail)}
+                  error={
+                    formik.touched.hrdEmail && Boolean(formik.errors.hrdEmail)
+                  }
                   helperText={formik.touched.hrdEmail && formik.errors.hrdEmail}
                 />
               </Grid>
@@ -544,8 +572,12 @@ function StudentForm() {
                   label="HRD Contact Number"
                   value={formik.values.hrdNumber}
                   onChange={formik.handleChange}
-                  error={formik.touched.hrdNumber && Boolean(formik.errors.hrdNumber)}
-                  helperText={formik.touched.hrdNumber && formik.errors.hrdNumber}
+                  error={
+                    formik.touched.hrdNumber && Boolean(formik.errors.hrdNumber)
+                  }
+                  helperText={
+                    formik.touched.hrdNumber && formik.errors.hrdNumber
+                  }
                 />
               </Grid>
               <Grid item xs={12}>
@@ -572,6 +604,15 @@ function StudentForm() {
                         type="file"
                         onChange={(e) => setOfferLetter(e.target.files[0])}
                       />
+                      {offerLetterError && (
+                        <Typography
+                          color="error"
+                          variant="caption"
+                          display="block"
+                        >
+                          {offerLetterError}
+                        </Typography>
+                      )}
                     </Grid>
                   )}
                   <Grid item xs={12} sm={6}>
@@ -583,6 +624,15 @@ function StudentForm() {
                       type="file"
                       onChange={(e) => setMailCopy(e.target.files[0])}
                     />
+                    {mailCopyError && (
+                      <Typography
+                        color="error"
+                        variant="caption"
+                        display="block"
+                      >
+                        {mailCopyError}
+                      </Typography>
+                    )}
                   </Grid>
                 </Grid>
               </Grid>

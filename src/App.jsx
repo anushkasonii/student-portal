@@ -1,17 +1,19 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import StudentForm from './components/StudentForm';
-import FpcPortal from './components/FpcPortal';
-import HodPortal from './components/HodPortal';
-import Login from './components/Login';
-import ProtectedRoute from './components/ProtectedRoute';
-import AdminPortal from './components/AdminPortal'; // Import AdminPortal
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import StudentForm from "./components/StudentForm";
+import FpcPortal from "./components/FpcPortal";
+import HodPortal from "./components/HodPortal";
+import Login from "./components/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminPortal from "./components/AdminPortal"; // Import AdminPortal
+import SuccessPage from "./components/SuccessPage";
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter basename="/student-portal">
       <Routes>
         <Route path="/" element={<StudentForm />} />
+        <Route path="/success" element={<SuccessPage />} />
         <Route path="/login" element={<Login />} />
         <Route
           path="/fpc"
@@ -32,14 +34,13 @@ function App() {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute role="admin"> {/* Protect the AdminPortal */}
+            <ProtectedRoute role="admin">
               <AdminPortal />
             </ProtectedRoute>
           }
         />
-     
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 
