@@ -392,8 +392,8 @@ function StudentForm() {
                   }
                   helperText={formik.touched.nocType && formik.errors.nocType}
                 >
-                  <MenuItem value="Internship NOC">Internship NOC</MenuItem>
-                  <MenuItem value="Generic NOC">Generic NOC</MenuItem>
+                  <MenuItem value="Specific">Specific</MenuItem>
+                  <MenuItem value="Generic">Generic </MenuItem>
                 </TextField>
               </Grid>
 
