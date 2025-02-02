@@ -36,6 +36,7 @@ const validationSchema = yup
       .required("Mobile Number is required"),
     department: yup.string().required("Department is required"),
     semester: yup.number().required("Semester is required"),
+    nocType:yup.string().required("NOC Type is required"),
     gender: yup.string().required("Gender is required"),
     section: yup.string().required("Section is required"),
     offerType: yup.string().required("Offer Type is required"),
@@ -73,6 +74,8 @@ const validationSchema = yup
       .required("Stipend amount is required")
       .positive("Stipend must be positive")
       .typeError("Please enter a valid number"),
+    nocType: yup.string().required("NOC Type is required"),
+
     startDate: yup.date().required("Start date is required"),
     endDate: yup.date().required("End date is required"),
     termsAccepted: yup
@@ -104,15 +107,14 @@ function StudentForm() {
   const [mailCopyError, setMailCopyError] = useState("");
   const [offerLetterError, setOfferLetterError] = useState("");
 
-  const validateFile = (file, isRequired) => {
-    if (!file && isRequired) return "File is required";
-    if (file) {
-      if (!SUPPORTED_FORMATS.includes(file.type)) return "File must be a PDF";
-      if (file.size > FILE_SIZE) return "File size must be less than 5MB";
-      if (file.name.includes(" ")) return "File name must not contain spaces";
-    }
+  const validateFile = (file) => {
+    if (!file) return "File is required";
+    if (!SUPPORTED_FORMATS.includes(file.type)) return "File must be a PDF";
+    if (file.size > FILE_SIZE) return "File size must be less than 5MB";
+    if (file.name.includes(" ")) return "File name must not contain spaces";
     return "";
   };
+  
 
   const navigate = useNavigate();
 
@@ -130,6 +132,7 @@ function StudentForm() {
       companyName: "",
       companyCity: "",
       companyState: "",
+      nocType: "",
       companyPin: "",
       internshipType: "",
       ppoPackage: "",
@@ -158,9 +161,16 @@ function StudentForm() {
       Object.entries(values).forEach(([key, value]) => {
         formData.append(key, value);
       });
-      formData.append("mailCopy", mailCopy);
+      formData.append("mail_copy_path", mailCopy);
+      formData.append("noc_type", values.nocType);
+      formData.append("package_ppo", values.ppoPackage);
+      formData.append("stipend_amount", values.stipend);
+
+
+
+
       if (values.hasOfferLetter && offerLetter) {
-        formData.append("offerLetter", offerLetter);
+        formData.append("offer_letter_path", offerLetter);
       }
 
       try {
@@ -372,6 +382,25 @@ function StudentForm() {
                 <TextField
                   fullWidth
                   select
+                  id="nocType"
+                  name="nocType"
+                  label="NOC Type"
+                  value={formik.values.nocType}
+                  onChange={formik.handleChange}
+                  error={
+                    formik.touched.nocType && Boolean(formik.errors.nocType)
+                  }
+                  helperText={formik.touched.nocType && formik.errors.nocType}
+                >
+                  <MenuItem value="Internship NOC">Internship NOC</MenuItem>
+                  <MenuItem value="Generic NOC">Generic NOC</MenuItem>
+                </TextField>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  select
                   id="offerType"
                   name="offerType"
                   label="Offer Type"
@@ -476,7 +505,7 @@ function StudentForm() {
                 >
                   <MenuItem value="Internship Only">Internship Only</MenuItem>
                   <MenuItem value="Internship with PPO">
-                    Internship with PPO
+                  Internship with PPO
                   </MenuItem>
                 </TextField>
               </Grid>

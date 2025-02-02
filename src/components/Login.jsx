@@ -42,6 +42,7 @@ function Login() {
       password: formData.password,
       is_app_password: useAppPassword
     };
+    
 
     // List of login functions to try
     const loginFunctions = [
@@ -167,7 +168,7 @@ function Login() {
                 sx={{ backgroundColor: "#fdfdfd" }}
               />
             </Box>
-            <Box sx={{ mb: 3 }}>
+            {/* <Box sx={{ mb: 3 }}>
               <FormControlLabel
                 control={
                   <Switch
@@ -178,7 +179,7 @@ function Login() {
                 }
                 label="Use App Password"
               />
-            </Box>
+            </Box> */}
             <Box sx={{ textAlign: "center" }}>
               <Button
                 type="submit"

@@ -21,7 +21,7 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { getSubmissions, createReview } from "../services/api";
+import { getSubmissions, createFpcReview } from "../services/api";
 
 function FpcPortal() {
   const [applications, setApplications] = useState([]);
@@ -69,6 +69,7 @@ function FpcPortal() {
 
   const validatePdf = (pdfPath) => {
     // Validate file size and check for spaces in filename
+    if (!pdfPath) return "File is required";
     const fileName = pdfPath.split("/").pop(); // Extract file name from path
     if (fileName.includes(" ")) {
       return "File name should not contain spaces.";
@@ -77,45 +78,34 @@ function FpcPortal() {
   };
 
   const handleSubmit = async () => {
-    // Validate comment for reject/rework actions
     if (action === "Reject" && !remarks.trim()) {
       setError("Comments are required for reject actions");
       return;
     }
-
-    // Get fpc or HOD ID based on role
-    const fpcId = getIdFromToken("fpc"); // Use the utility function to fetch fpc ID
+  
+    const fpcId = getIdFromToken("fpc");
     if (!fpcId) {
-      setError("Failed to fetch fpc ID");
+      setError("Failed to fetch FPC ID");
       return;
     }
-
-    // Construct the review data
+  
     const reviewData = {
       submission_id: selectedApp.id,
-      fpc_id: fpcId, // Use the fetched fpc ID
-      status:
-        action === "Approve"
-          ? "Approved"
-          :"Rejected"
-          ? "Rejected"
-          : "Rework",
+      fpc_id: fpcId,
+      status: action,
       comments: action === "Approve" ? "" : remarks.trim(),
     };
-
-    console.log("Review Data:", reviewData);
-
+    
     try {
-      await createReview(reviewData);
+      await createFpcReview(reviewData);
       setOpenDialog(false);
-      setRemarks("");
-      setSelectedApp(null);
-      setError("");
+      fetchSubmissions();  // Refresh table
     } catch (error) {
       console.error("Error submitting review:", error);
       setError(error.response?.data?.error || "Failed to submit review");
     }
   };
+  
 
   if (loading) {
     return (
@@ -124,7 +114,6 @@ function FpcPortal() {
         justifyContent="center"
         alignItems="center"
         minHeight="100vh"
-     
       >
         <CircularProgress />
       </Box>
@@ -133,244 +122,410 @@ function FpcPortal() {
 
   return (
     <Box
-  sx={{
-    minHeight: "140vh",
-        minWidth: "100vw",
+      sx={{
+        minHeight: "100vh",
+        width: "100%",
+
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        mt:-45,
-    backgroundColor: "#f8f9fa", // Full gray background
-    padding: 2,
-  }}
->
-    <Container
-      maxWidth="lg" disableGutters
-      sx={{
-        py: 4,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        backgroundColor: "#f8f9fa",
+        
+        backgroundColor: "#f8f9fa", // Full gray background
+        padding: 2,
+        overflowX: "hidden",
       }}
     >
-      <Paper
-      elevation={3}
-      sx={{
-        p: 4,
-        borderRadius: 2,
-        maxWidth: 1200,
-        margin: "0 auto", // Center align
-        backgroundColor: "#fff", // Keep the Paper white
-      }}
-      >
-        <Typography
-          variant="h4"
-          gutterBottom
-          color="primary"
-          sx={{
-            mb: 4,
-            fontWeight: "bold",
-            textAlign: "center",
-            color: "#d05c24",
-          }}
-        >
-          FPC Portal - Student Applications
-        </Typography>
-
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
-
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: "#D97C4F" }}>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Reg. No.
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Student Name
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Department
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Company
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Offer Type
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Stipend
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Actions
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Offer Letter
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Mail Copy
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Status
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {applications.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} align="center">
-                    No applications found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                applications.map((app) => {
-                  const offerLetterError = validatePdf(app.offer_letter_path); // Validation for offer letter
-                  const mailCopyError = validatePdf(app.mail_copy_path);
-                  return (
-                    <TableRow key={app.id}>
-                      <TableCell>{app.registration_number}</TableCell>
-                      <TableCell>{app.name}</TableCell>
-                      <TableCell>{app.department}</TableCell>
-                      <TableCell>{app.company_name}</TableCell>
-                      <TableCell>{app.offer_type}</TableCell>
-                      <TableCell>₹{app.stipend_amount}</TableCell>
-                      <TableCell>
-                        {offerLetterError ? (
-                          <Alert severity="error">{offerLetterError}</Alert>
-                        ) : (
-                          <a
-                            href={app.offer_letter_path}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            View Offer Letter
-                          </a>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {mailCopyError ? (
-                          <Alert severity="error">{mailCopyError}</Alert>
-                        ) : (
-                          <a
-                            href={app.mail_copy_path}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            View Mail Copy
-                          </a>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 1,
-                          }}
-                        >
-                          <Button
-                            variant="contained"
-                            color="success"
-                            size="small"
-                            onClick={() => handleActionClick(app, "Approve")}
-                          >
-                            Approve
-                          </Button>
-                          <Button
-                            variant="contained"
-                            color="error"
-                            size="small"
-                            onClick={() => handleActionClick(app, "Reject")}
-                          >
-                            Reject
-                          </Button>
-                        </Box>
-                      </TableCell>
-                      <TableCell>{app.status}</TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
-
-      <Dialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            p: 2,
-            backgroundColor: "#fff",
-            borderRadius: 2,
-          },
+      <Container
+        maxWidth="xl"
+        disableGutters
+        sx={{
+          py: 4,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          ml: -2,
+          // minHeight: "100vh",
+          backgroundColor: "#f8f9fa",
         }}
       >
-        <DialogTitle
+        <Paper
+          elevation={3}
           sx={{
-            backgroundColor: "#d05c24",
-            color: "white",
-            textAlign: "center",
-            fontWeight: "bold",
+            p: 5,
+            borderRadius: 2,
+            width: "85%",
+            maxWidth: 1400,
+            margin: "0 auto", // Center align
+            backgroundColor: "#fff", // Keep the Paper white
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center", // Center Paper content
           }}
         >
-          Review Application
-        </DialogTitle>
-        <DialogContent sx={{ mt: 2 }}>
+          <Typography
+            variant="h4"
+            gutterBottom
+            color="primary"
+            sx={{
+              mb: 4,
+              fontWeight: "bold",
+              textAlign: "center",
+              color: "#d05c24",
+              fontSize: "2.1rem", // Increase font size
+            }}
+          >
+            FPC Portal - Student Applications
+          </Typography>
+
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity="error" sx={{ mb: 3 }}>
               {error}
             </Alert>
           )}
-          <TextField
-            fullWidth
-            label="Comments"
-            multiline
-            rows={4}
-            value={remarks}
-            onChange={(e) => setRemarks(e.target.value)}
-            required={action === "Reject" || action === "Rework"}
-            error={Boolean(error)}
-            helperText={error}
-            sx={{ mt: 1 }}
-          />
-        </DialogContent>
-        <DialogActions
-          sx={{ p: 2, backgroundColor: "#f8f9fa", borderTop: "1px solid #ddd" }}
+
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: "#D97C4F" }}>
+                  <TableCell
+                    sx={{
+                      textAlign: "center",
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    Reg. No.
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      textAlign: "center",
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    Student Name
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      textAlign: "center",
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    Department
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      textAlign: "center",
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    Company
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      textAlign: "center",
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    Offer Type
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      textAlign: "center",
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    Stipend
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      textAlign: "center",
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    Internship Type
+                  </TableCell> 
+                  <TableCell
+                    sx={{
+                      textAlign: "center",
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    PPO Package (LPA)
+                  </TableCell> 
+                  <TableCell
+                    sx={{
+                      textAlign: "center",
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    Offer Letter
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      textAlign: "center",
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    Mail Copy
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      textAlign: "center",
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    Actions
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      textAlign: "center",
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    Status
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {applications.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} align="center">
+                      No applications found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  applications.map((app) => {
+                    const offerLetterError = validatePdf(app.offer_letter_path); // Validation for offer letter
+                    const mailCopyError = validatePdf(app.mail_copy_path);
+                    return (
+                      <TableRow
+                        key={app.id}
+                        sx={{
+                          backgroundColor:
+                            app.status === "Approved"
+                              ? "#A3CE71"
+                              : app.status === "Rejected"
+                              ? "#F16257"
+                              : "inherit",
+                        }}
+                      >
+                        <TableCell
+                          sx={{ textAlign: "center", fontSize: "1rem" }}
+                        >
+                          {app.registration_number}
+                        </TableCell>
+                        <TableCell
+                          sx={{ textAlign: "center", fontSize: "1rem" }}
+                        >
+                          {app.name}
+                        </TableCell>
+                        <TableCell
+                          sx={{ textAlign: "center", fontSize: "1rem" }}
+                        >
+                          {app.department}
+                        </TableCell>
+                        <TableCell
+                          sx={{ textAlign: "center", fontSize: "1rem" }}
+                        >
+                          {app.company_name}
+                        </TableCell>
+                        <TableCell
+                          sx={{ textAlign: "center", fontSize: "1rem" }}
+                        >
+                          {app.offer_type}
+                        </TableCell>
+                        <TableCell
+                          sx={{ textAlign: "center", fontSize: "1rem" }}
+                        >
+                          ₹{app.stipend_amount}
+                        </TableCell>
+                        <TableCell
+                          sx={{ textAlign: "center", fontSize: "1rem" }}
+                        >
+                            {app.offer_type_detail}
+                        </TableCell> {/* Add Internship Type column */}
+                        <TableCell
+                          sx={{ textAlign: "center", fontSize: "1rem" }}
+                        >
+                          {app.package_ppo ? app.package_ppo : "-"}
+                        </TableCell> {/* Add PPO Package column */}
+                        <TableCell
+                          sx={{ textAlign: "center", fontSize: "1rem" }}
+                        >
+                          {app.offer_letter_path ? (
+                            offerLetterError ? (
+                              <Alert severity="error">{offerLetterError}</Alert>
+                            ) : (
+                              <a
+                                href={app.offer_letter_path}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                View Offer Letter
+                              </a>
+                            )
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell
+                          sx={{ textAlign: "center", fontSize: "1rem" }}
+                        >
+                          {mailCopyError ? (
+                            <Alert severity="error">{mailCopyError}</Alert>
+                          ) : (
+                            <a
+                              href={app.mail_copy_path}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              View Mail Copy
+                            </a>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {app.status === "Pending" && (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 1,
+                              }}
+                            >
+                              <Button
+                                variant="contained"
+                                color="success"
+                                size="small"
+                                onClick={() =>
+                                  handleActionClick(app, "Approve")
+                                }
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                variant="contained"
+                                color="error"
+                                size="small"
+                                onClick={() => handleActionClick(app, "Reject")}
+                              >
+                                Reject
+                              </Button>
+                            </Box>
+                          )}
+                        </TableCell>
+                        <TableCell>{app.status}</TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+
+        <Dialog
+          open={openDialog}
+          onClose={() => setOpenDialog(false)}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              p: 2,
+              backgroundColor: "#fff",
+              borderRadius: 2,
+            },
+          }}
         >
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            color={
-              action === "Approve"
-                ? "success"
-                : action === "Reject"
-                ? "error"
-                : "warning"
-            }
+          <DialogTitle
+            sx={{
+              backgroundColor: "#d05c24",
+              color: "white",
+              textAlign: "center",
+              fontWeight: "bold",
+              fontSize: "1.25rem",
+            }}
           >
-            Confirm {action}
-          </Button>
-          <Button
-            onClick={() => setOpenDialog(false)}
-            variant="outlined"
-            sx={{ color: "#d05c24", borderColor: "#d05c24" }}
+            Review Application
+          </DialogTitle>
+          <DialogContent sx={{ mt: 2 }}>
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+            <TextField
+              fullWidth
+              label="Comments"
+              multiline
+              rows={4}
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+              required={action === "Reject" || action === "Rework"}
+              error={Boolean(error)}
+              helperText={error}
+              sx={{ mt: 1 }}
+            />
+          </DialogContent>
+          <DialogActions
+            sx={{
+              p: 2,
+              backgroundColor: "#f8f9fa",
+              borderTop: "1px solid #ddd",
+              fontSize: "1rem",
+            }}
           >
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Container>
+            <Button
+              onClick={handleSubmit}
+              variant="contained"
+              color={
+                action === "Approve"
+                  ? "success"
+                  : action === "Reject"
+                  ? "error"
+                  : "warning"
+              }
+              sx={{ fontSize: "1rem" }}
+            >
+              Confirm {action}
+            </Button>
+            <Button
+              onClick={() => setOpenDialog(false)}
+              variant="outlined"
+              sx={{
+                color: "#d05c24",
+                borderColor: "#d05c24",
+                fontSize: "1rem",
+              }}
+            >
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Container>
     </Box>
   );
 }

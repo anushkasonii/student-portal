@@ -1,4 +1,6 @@
+import bcrypt from 'bcryptjs';
 import { useState, useEffect } from "react";
+import { getSubmissions } from '../services/api';
 import {
   Container,
   Paper,
@@ -23,6 +25,7 @@ import { getHods, getFpcs, createHod, createFpc } from "../services/api";
 
 function AdminPortal() {
   const [hods, setHods] = useState([]);
+  const [applications, setApplications] = useState([]);
   const [fpcs, setFpcs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -36,6 +39,14 @@ function AdminPortal() {
   });
 
   useEffect(() => {
+    async function fetchData() {
+      try {
+        const submissions = await getSubmissions();
+        setApplications(submissions);
+      } catch (error) {
+        console.error(error);
+      }
+    }
     fetchData();
   }, []);
 
@@ -73,12 +84,21 @@ function AdminPortal() {
       return;
     }
     try {
+      const passwordHash = await bcrypt.hash(formData.password, 10);
+  
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        app_password: formData.password,  // Storing the raw password as app_password
+        department: formData.department,
+      };
+  
       if (dialogType === "hod") {
-        await createHod(formData);
+        await createHod(payload);
       } else if (dialogType === "fpc") {
-        await createFpc(formData);
+        await createFpc(payload);
       }
-      fetchData(); // Refresh data
+      fetchData();
       handleCloseDialog();
     } catch (err) {
       setError("Failed to create entry");

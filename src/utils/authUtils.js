@@ -1,6 +1,6 @@
 import { jwtDecode } from 'jwt-decode';
 
-export function getIdFromToken(role = 'reviewer') {
+export function getIdFromToken(role) {
     try {
         const token = localStorage.getItem('token');
         console.log('Token:', token);  // Log to see if the token is retrieved correctly
@@ -14,14 +14,11 @@ export function getIdFromToken(role = 'reviewer') {
         console.log('Decoded Token:', decodedToken);
 
         // Check role and return the appropriate ID
-        if (role === 'spc') {
-            return decodedToken.id || null;  // Adjust this based on your JWT structure
-        } else if (role === 'hod') {
-            return decodedToken.id || null;  // Assuming hod_id is in the JWT
-        }
-
+        if (role === "fpc") return decodedToken.id;
+        if (role === "hod") return decodedToken.id;
         console.error('Invalid role');
         return null;
+
     } catch (error) {
         console.error('Error decoding JWT token:', error);
         return null;
