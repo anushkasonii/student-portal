@@ -26,7 +26,7 @@ const validationSchema = yup
     email: yup
       .string()
       .matches(
-        /^[a-zA-Z]+\.[0-9]{9}@muj\.manipal\.edu$/,
+        /^[a-zA-Z]+\.[a-zA-Z0-9]+@muj\.manipal\.edu$/,
         "Enter your official mail id"
       )
       .required("Email is required"),
@@ -36,7 +36,7 @@ const validationSchema = yup
       .required("Mobile Number is required"),
     department: yup.string().required("Department is required"),
     semester: yup.number().required("Semester is required"),
-    nocType:yup.string().required("NOC Type is required"),
+    nocType: yup.string().required("NOC Type is required"),
     gender: yup.string().required("Gender is required"),
     section: yup.string().required("Section is required"),
     offerType: yup.string().required("Offer Type is required"),
@@ -80,7 +80,7 @@ const validationSchema = yup
     endDate: yup.date().required("End date is required"),
     termsAccepted: yup
       .boolean()
-      .oneOf([true], "Must accept terms and conditions"),
+      .oneOf([true], "You must accept the terms and conditions"),
   })
   .test(
     "hrdContact",
@@ -97,26 +97,21 @@ const validationSchema = yup
   );
 
 function StudentForm() {
-  const SUPPORTED_FORMATS = ["application/pdf"];
-  const FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const navigate = useNavigate();
   const [formErrors, setFormErrors] = useState([]);
   const [offerLetter, setOfferLetter] = useState(null);
   const [mailCopy, setMailCopy] = useState(null);
   const [fileError, setFileError] = useState("");
   const [submissionStatus, setSubmissionStatus] = useState("");
-  const [mailCopyError, setMailCopyError] = useState("");
-  const [offerLetterError, setOfferLetterError] = useState("");
 
-  const validateFile = (file) => {
-    if (!file) return "File is required";
-    if (!SUPPORTED_FORMATS.includes(file.type)) return "File must be a PDF";
-    if (file.size > FILE_SIZE) return "File size must be less than 5MB";
-    if (file.name.includes(" ")) return "File name must not contain spaces";
+  const validateFile = (file, isRequired = false) => {
+    if (isRequired && !file) return "File is required";
+    if (file) {
+      if (!file.type.includes("pdf")) return "File must be a PDF";
+      if (file.size > 5 * 1024 * 1024) return "File size must be less than 5MB";
+    }
     return "";
   };
-  
-
-  const navigate = useNavigate();
 
   const formik = useFormik({
     initialValues: {
@@ -139,50 +134,79 @@ function StudentForm() {
       stipend: "",
       startDate: "",
       endDate: "",
-      hasOfferLetter: false,
       hrdEmail: "",
       hrdNumber: "",
       termsAccepted: false,
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
-      const mailCopyErr = validateFile(mailCopy, true);
-      const offerLetterErr = validateFile(offerLetter, values.hasOfferLetter);
-
-      setMailCopyError(mailCopyErr);
-      setOfferLetterError(offerLetterErr);
-
-      if (mailCopyErr || offerLetterErr) {
-        return;
-      }
-
-      // Prepare FormData
-      const formData = new FormData();
-      Object.entries(values).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
-      formData.append("mail_copy_path", mailCopy);
-      formData.append("noc_type", values.nocType);
-      formData.append("package_ppo", values.ppoPackage);
-      formData.append("stipend_amount", values.stipend);
-
-
-
-
-      if (values.hasOfferLetter && offerLetter) {
-        formData.append("offer_letter_path", offerLetter);
-      }
-
       try {
-        await submitApplication(formData);
+        setFileError("");
+        setSubmissionStatus("");
+
+        // Validate files based on NOC type
+        const mailCopyError = validateFile(mailCopy, true);
+        const offerLetterError =
+          values.nocType === "Specific"
+            ? validateFile(offerLetter, true)
+            : validateFile(offerLetter);
+
+        if (
+          mailCopyError ||
+          (values.nocType === "Specific" && offerLetterError)
+        ) {
+          setFileError(mailCopyError || offerLetterError);
+          return;
+        }
+
+        // Validate dates
+        const startDate = new Date(values.startDate);
+        const endDate = new Date(values.endDate);
+        if (endDate <= startDate) {
+          setSubmissionStatus("End date must be after start date");
+          return;
+        }
+
+        // Create FormData
+        const formData = new FormData();
+
+        // Add basic fields
+        Object.entries(values).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            formData.append(key, value);
+          }
+        });
+
+        // Add files
+        if (mailCopy) {
+          formData.append("mailCopy", mailCopy);
+        }
+
+        if (values.nocType === "Specific" && offerLetter) {
+          formData.append("offerLetter", offerLetter);
+        }
+
+        // Add numeric fields with proper formatting
+        formData.append("stipend_amount", values.stipend);
+        if (
+          values.internshipType === "Internship with PPO" &&
+          values.ppoPackage
+        ) {
+          formData.append("package_ppo", values.ppoPackage);
+        }
+
+        // Submit form
+        const response = await submitApplication(formData);
+
+        // Handle success
         formik.resetForm();
         setOfferLetter(null);
         setMailCopy(null);
         setFormErrors([]);
         setSubmissionStatus("Application submitted successfully!");
-        // Redirect to the success page
         navigate("/success");
       } catch (error) {
+        console.error("Submission error:", error);
         setSubmissionStatus(
           error.response?.data?.message || "Failed to submit application"
         );
@@ -190,13 +214,35 @@ function StudentForm() {
     },
   });
 
+  // File handlers
+  const handleOfferLetterChange = (event) => {
+    const file = event.target.files[0];
+    const error = validateFile(file, formik.values.nocType === "Specific");
+    if (error) {
+      setFileError(error);
+      return;
+    }
+    setOfferLetter(file);
+    setFileError("");
+  };
+
+  const handleMailCopyChange = (event) => {
+    const file = event.target.files[0];
+    const error = validateFile(file, true);
+    if (error) {
+      setFileError(error);
+      return;
+    }
+    setMailCopy(file);
+    setFileError("");
+  };
+
   return (
     <Box
       sx={{
         minHeight: "100vh", // Full viewport height
         minWidth: "100vw",
         display: "block",
-
         alignItems: "center", // Vertical alignment
         justifyContent: "center", // Horizontal alignment
         backgroundColor: "#f5f5f5", // Light gray background
@@ -253,6 +299,7 @@ function StudentForm() {
                   label="Name"
                   value={formik.values.name}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={formik.touched.name && Boolean(formik.errors.name)}
                   helperText={formik.touched.name && formik.errors.name}
                 />
@@ -266,6 +313,7 @@ function StudentForm() {
                   label="Registration Number"
                   value={formik.values.registrationNumber}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={
                     formik.touched.registrationNumber &&
                     Boolean(formik.errors.registrationNumber)
@@ -286,6 +334,7 @@ function StudentForm() {
                   type="email"
                   value={formik.values.email}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={formik.touched.email && Boolean(formik.errors.email)}
                   helperText={formik.touched.email && formik.errors.email}
                 />
@@ -298,6 +347,7 @@ function StudentForm() {
                   label="Mobile Number"
                   value={formik.values.mobile}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={formik.touched.mobile && Boolean(formik.errors.mobile)}
                   helperText={formik.touched.mobile && formik.errors.mobile}
                 />
@@ -311,6 +361,7 @@ function StudentForm() {
                   label="Department"
                   value={formik.values.department}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={
                     formik.touched.department &&
                     Boolean(formik.errors.department)
@@ -333,6 +384,7 @@ function StudentForm() {
                   type="number"
                   value={formik.values.semester}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={
                     formik.touched.semester && Boolean(formik.errors.semester)
                   }
@@ -356,6 +408,7 @@ function StudentForm() {
                   select
                   value={formik.values.gender}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={formik.touched.gender && Boolean(formik.errors.gender)}
                   helperText={formik.touched.gender && formik.errors.gender}
                 >
@@ -372,6 +425,7 @@ function StudentForm() {
                   label="Section"
                   value={formik.values.section}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={
                     formik.touched.section && Boolean(formik.errors.section)
                   }
@@ -387,6 +441,7 @@ function StudentForm() {
                   label="NOC Type"
                   value={formik.values.nocType}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={
                     formik.touched.nocType && Boolean(formik.errors.nocType)
                   }
@@ -406,6 +461,7 @@ function StudentForm() {
                   label="Offer Type"
                   value={formik.values.offerType}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={
                     formik.touched.offerType && Boolean(formik.errors.offerType)
                   }
@@ -425,6 +481,7 @@ function StudentForm() {
                   label="Company Name"
                   value={formik.values.companyName}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={
                     formik.touched.companyName &&
                     Boolean(formik.errors.companyName)
@@ -434,7 +491,9 @@ function StudentForm() {
                   }
                 />
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12}>
+  <Grid container spacing={2}> {/* Controls spacing between items */}
+    <Grid item xs={4}>
                 <TextField
                   fullWidth
                   id="companyCity"
@@ -442,6 +501,7 @@ function StudentForm() {
                   label="Company City"
                   value={formik.values.companyCity}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={
                     formik.touched.companyCity &&
                     Boolean(formik.errors.companyCity)
@@ -451,7 +511,7 @@ function StudentForm() {
                   }
                 />
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={4}>
                 <TextField
                   fullWidth
                   id="companyState"
@@ -459,6 +519,7 @@ function StudentForm() {
                   label="Company State"
                   value={formik.values.companyState}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={
                     formik.touched.companyState &&
                     Boolean(formik.errors.companyState)
@@ -468,7 +529,7 @@ function StudentForm() {
                   }
                 />
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={4}>
                 <TextField
                   fullWidth
                   id="companyPin"
@@ -476,6 +537,7 @@ function StudentForm() {
                   label="PIN Code"
                   value={formik.values.companyPin}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={
                     formik.touched.companyPin &&
                     Boolean(formik.errors.companyPin)
@@ -484,7 +546,9 @@ function StudentForm() {
                     formik.touched.companyPin && formik.errors.companyPin
                   }
                 />
-              </Grid>
+               </Grid>
+  </Grid>
+</Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -493,6 +557,7 @@ function StudentForm() {
                   name="internshipType"
                   label="Internship Type"
                   value={formik.values.internshipType}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   onChange={formik.handleChange}
                   error={
                     formik.touched.internshipType &&
@@ -505,7 +570,7 @@ function StudentForm() {
                 >
                   <MenuItem value="Internship Only">Internship Only</MenuItem>
                   <MenuItem value="Internship with PPO">
-                  Internship with PPO
+                    Internship with PPO
                   </MenuItem>
                 </TextField>
               </Grid>
@@ -518,6 +583,7 @@ function StudentForm() {
                     label="PPO Package (LPA)"
                     type="number"
                     value={formik.values.ppoPackage}
+                    onBlur={formik.handleBlur} // ✅ Ensures validation runs
                     onChange={formik.handleChange}
                     error={
                       formik.touched.ppoPackage &&
@@ -535,6 +601,7 @@ function StudentForm() {
                   id="stipend"
                   name="stipend"
                   label="Stipend (₹ per month)"
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   type="number"
                   value={formik.values.stipend}
                   onChange={formik.handleChange}
@@ -552,6 +619,7 @@ function StudentForm() {
                   label="Start Date"
                   type="date"
                   value={formik.values.startDate}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   onChange={formik.handleChange}
                   error={
                     formik.touched.startDate && Boolean(formik.errors.startDate)
@@ -571,6 +639,7 @@ function StudentForm() {
                   type="date"
                   value={formik.values.endDate}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={
                     formik.touched.endDate && Boolean(formik.errors.endDate)
                   }
@@ -586,6 +655,7 @@ function StudentForm() {
                   name="hrdEmail"
                   label="HRD Email"
                   value={formik.values.hrdEmail}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   onChange={formik.handleChange}
                   error={
                     formik.touched.hrdEmail && Boolean(formik.errors.hrdEmail)
@@ -600,6 +670,7 @@ function StudentForm() {
                   name="hrdNumber"
                   label="HRD Contact Number"
                   value={formik.values.hrdNumber}
+                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   onChange={formik.handleChange}
                   error={
                     formik.touched.hrdNumber && Boolean(formik.errors.hrdNumber)
@@ -610,66 +681,39 @@ function StudentForm() {
                 />
               </Grid>
               <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      name="hasOfferLetter"
-                      checked={formik.values.hasOfferLetter}
-                      onChange={formik.handleChange}
-                    />
-                  }
-                  label="I have an offer letter to upload"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Grid container spacing={2}>
-                  {formik.values.hasOfferLetter && (
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="subtitle1" gutterBottom>
-                        Offer Letter (PDF only)
-                      </Typography>
-                      <input
-                        accept="application/pdf"
-                        type="file"
-                        onChange={(e) => setOfferLetter(e.target.files[0])}
-                      />
-                      {offerLetterError && (
-                        <Typography
-                          color="error"
-                          variant="caption"
-                          display="block"
-                        >
-                          {offerLetterError}
-                        </Typography>
-                      )}
-                    </Grid>
-                  )}
+              <Grid container spacing={2}>
+                {formik.values.nocType === "Specific" && (
                   <Grid item xs={12} sm={6}>
                     <Typography variant="subtitle1" gutterBottom>
-                      Mail Copy (PDF only)
+                      Offer Letter (PDF only, required for Specific NOC)
                     </Typography>
                     <input
                       accept="application/pdf"
                       type="file"
-                      onChange={(e) => setMailCopy(e.target.files[0])}
+                      onChange={handleOfferLetterChange}
+                      required={formik.values.nocType === "Specific"}
                     />
-                    {mailCopyError && (
-                      <Typography
-                        color="error"
-                        variant="caption"
-                        display="block"
-                      >
-                        {mailCopyError}
-                      </Typography>
-                    )}
                   </Grid>
+                )}
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Mail Copy (PDF only, required)
+                  </Typography>
+                  <input
+                    accept="application/pdf"
+                    type="file"
+                    onChange={handleMailCopyChange}
+                    required
+                  />
                 </Grid>
+              </Grid>
               </Grid>
 
               <Grid item xs={12}>
                 <FormControlLabel
                   control={
                     <Checkbox
+                      id="termsAccepted"
                       name="termsAccepted"
                       checked={formik.values.termsAccepted}
                       onChange={formik.handleChange}
@@ -693,7 +737,7 @@ function StudentForm() {
                   sx={{ backgroundColor: "#d05c24" }}
                   fullWidth
                   className="submit-button"
-                  //disabled={!formik.isValid || !formik.values.termsAccepted}
+                  // disabled={!formik.isValid || !formik.values.termsAccepted}
                 >
                   Submit Application
                 </Button>

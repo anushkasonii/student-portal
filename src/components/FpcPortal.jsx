@@ -69,17 +69,16 @@ function FpcPortal() {
   };
   const getStatusTextColor = (status) => {
     switch (status) {
-        case "Approved":
-            return "black"; 
-        case "Rejected":
-            return "black"; 
-        case "Rework":
-            return "black"; 
-        default:
-            return "#000000"; // Black (Default)
+      case "Approved":
+        return "black";
+      case "Rejected":
+        return "black";
+      case "Rework":
+        return "black";
+      default:
+        return "#000000"; // Black (Default)
     }
-};
-
+  };
 
   const validatePdf = (pdfPath) => {
     // Validate file size and check for spaces in filename
@@ -93,52 +92,33 @@ function FpcPortal() {
 
   const handleSubmit = async () => {
     if (action === "Reject" && !remarks.trim()) {
-      setError("Comments are required for reject actions");
+      setError("Comments are required for rejection");
       return;
     }
 
     const fpcId = getIdFromToken("fpc");
     if (!fpcId) {
-      setError("Failed to fetch FPC ID");
+      setError("FPC ID not found");
       return;
     }
 
-    const reviewData = {
-      submission_id: selectedApp.id,
-      fpc_id: fpcId,
-      status: action,
-      comments: action === "Approve" ? "" : remarks.trim(),
-    };
-    console.log("Sending reviewData:", reviewData); // Debugging Log
-
     try {
-      const response = await createFpcReview(reviewData);
-      console.log("Response from backend:", response);
+      const reviewData = {
+        submission_id: selectedApp.id,
+        fpc_id: fpcId,
+        status: action, // Must be "Approved", "Rejected", or "Rework"
+        comments: remarks.trim()
+      };
 
+      await createFpcReview(reviewData);
+      await fetchSubmissions(); // Refresh the list
       
-      setApplications((prevApps) =>
-        prevApps.map((app) =>
-          app.id === selectedApp.id
-            ? { ...app, status: action, comments: remarks.trim() }
-            : app
-        )
-      );
       setOpenDialog(false);
-      setSelectedApp(null);
       setRemarks("");
-      setError(""); // Clear any previous errors
+      setSelectedApp(null);
+      setError("");
     } catch (error) {
-      console.error("Error submitting review:", error);
-      // Update UI even if API fails
-      setApplications((prevApps) =>
-        prevApps.map((app) =>
-          app.id === selectedApp.id
-            ? { ...app, status: action, comments: remarks.trim() }
-            : app
-        )
-      );
-
-      setError(error.response?.data?.error || "Failed to submit review");
+      setError(error.response?.data?.message || "Failed to submit review");
     }
   };
 
@@ -359,16 +339,16 @@ function FpcPortal() {
                     const mailCopyError = validatePdf(app.mail_copy_path);
                     return (
                       <TableRow
-    key={app.id}
-    sx={{
-        backgroundColor:
-            app.status === "Approved"
-                ? "#BDE7BD"
-                : app.status === "Rejected"
-                ? "#FF8E85"
-                : "inherit",
-    }}
->
+                        key={app.id}
+                        sx={{
+                          backgroundColor:
+                            app.status === "Approved"
+                              ? "#BDE7BD"
+                              : app.status === "Rejected"
+                              ? "#FF8E85"
+                              : "inherit",
+                        }}
+                      >
                         <TableCell
                           sx={{ textAlign: "center", fontSize: "1rem" }}
                         >

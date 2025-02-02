@@ -1,10 +1,7 @@
 import axios from 'axios';
-import { useState } from 'react';
-
 
 const SUBMISSION_SERVICE_URL = 'http://localhost:8001';
 const MAIN_SERVICE_URL = 'http://localhost:8002';
-
 
 // Create separate instances for different services
 const submissionApi = axios.create({
@@ -32,9 +29,7 @@ const mainApi = axios.create({
   });
 });
 
-
-
-// Auth endpoints (Main service)
+// Auth endpoints
 export const loginFpc = async (credentials) => {
   const response = await mainApi.post('/fpc/login', credentials);
   return response.data;
@@ -50,83 +45,104 @@ export const loginAdmin = async (credentials) => {
   return response.data;
 };
 
-// App Password Management
-export const updateAppPassword = async (role, userId, newAppPassword) => {
-  const response = await mainApi.post(`/${role}/update-app-password`, {
-    id: userId,
-    app_password: newAppPassword
-  });
-  return response.data;
-};
-
-// Submission endpoints (Submission service)
+// Submission endpoints
 export const submitApplication = async (formData) => {
-  const response = await submissionApi.post('/submit', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-  return response.data;
-};
-
-// Review endpoints (Main service)
-export const getSubmissions = async () => {
   try {
-    const response = await mainApi.get('/fpc/submissions');
-  
-    if (response.data && Array.isArray(response.data.submissions)) {
-      return response.data.submissions;
-    } else {
-      throw new Error('Invalid data format or submissions key missing');
-    }
+    const response = await submissionApi.post('/submit', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
   } catch (error) {
-    console.error('Error fetching submissions:', error);
-    throw new Error(error.response?.data?.message || 'Failed to fetch submissions');
+    console.error('Submission Error:', error.response?.data || error.message);
+    throw error;
   }
 };
 
-export const getApprovedSubmissions = async (nocType) => {
+// FPC endpoints
+export const getSubmissions = async () => {
   try {
-    const response = await mainApi.get(`/hod/approved_submissions?noc_type=${nocType}`);
+    const response = await mainApi.get('/fpc/submissions');
     return response.data.submissions;
-    
   } catch (error) {
     console.error('Error fetching submissions:', error);
-    throw new Error(error.response?.data?.message || 'Failed to fetch submissions');
+    throw error;
   }
 };
 
 export const createFpcReview = async (reviewData) => {
-  const response = await mainApi.post('/fpc/fpc_reviews', reviewData);
-  return response.data;
+  try {
+    const response = await mainApi.post('/fpc/fpc_reviews', reviewData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating FPC review:', error);
+    throw error;
+  }
 };
 
-
+// HOD endpoints
+export const getApprovedSubmissions = async (nocType) => {
+  try {
+    const response = await mainApi.get('/hod/submissions', {
+      params: { noc_type: nocType }
+    });
+    return response.data.submissions;
+  } catch (error) {
+    console.error('Error fetching approved submissions:', error);
+    throw error;
+  }
+};
 
 export const createHodReview = async (reviewData) => {
-  const response = await mainApi.post('/hod/hod_reviews', reviewData);
-  return response.data;
+  try {
+    const response = await mainApi.post('/hod/hod_reviews', reviewData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating HOD review:', error);
+    throw error;
+  }
 };
 
-
-// Admin endpoints (Main service)
+// Admin endpoints
 export const getHods = async () => {
-  const response = await mainApi.get('/hod');
-  return response.data;
+  try {
+    const response = await mainApi.get('/admin/hods');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching HODs:', error);
+    throw error;
+  }
 };
 
 export const getFpcs = async () => {
-  const response = await mainApi.get('/fpc');
-  return response.data;
+  try {
+    const response = await mainApi.get('/admin/fpcs');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching FPCs:', error);
+    throw error;
+  }
 };
 
 export const createHod = async (hodData) => {
-  const response = await mainApi.post('/hod', hodData);
-  return response.data;
+  try {
+    const response = await mainApi.post('/admin/hod', hodData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating HOD:', error);
+    throw error;
+  }
 };
 
 export const createFpc = async (fpcData) => {
-  const response = await mainApi.post('/fpc', fpcData);
-  return response.data;
+  try {
+    const response = await mainApi.post('/admin/fpc', fpcData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating FPC:', error);
+    throw error;
+  }
 };
-
 
 export { submissionApi, mainApi };
