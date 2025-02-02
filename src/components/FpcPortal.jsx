@@ -144,7 +144,7 @@ function FpcPortal() {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          ml: -2,
+         
           // minHeight: "100vh",
           backgroundColor: "#f8f9fa",
         }}
@@ -154,8 +154,9 @@ function FpcPortal() {
           sx={{
             p: 5,
             borderRadius: 2,
-            width: "85%",
-            maxWidth: 1400,
+            
+            width: "95%",
+            maxWidth: 1300,
             margin: "0 auto", // Center align
             backgroundColor: "#fff", // Keep the Paper white
             display: "flex",
