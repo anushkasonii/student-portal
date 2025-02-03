@@ -10,7 +10,7 @@ import SuccessPage from "./components/SuccessPage";
 
 function App() {
   return (
-    <HashRouter basename="/student-portal">
+    <HashRouter>
       <Routes>
         <Route path="/" element={<StudentForm />} />
         <Route path="/success" element={<SuccessPage />} />
@@ -39,6 +39,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="*" element={<h1>404 Not Found</h1>} />
       </Routes>
       </HashRouter>
   );

@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-const SUBMISSION_SERVICE_URL = 'http://localhost:8001';
-const MAIN_SERVICE_URL = 'http://localhost:8002';
-const FILES_BASE_URL = 'http://localhost:8002/files';
+const SUBMISSION_SERVICE_URL = 'http://13.61.236.147:8001'; // Change to EC2 IP
+const MAIN_SERVICE_URL = 'http://13.61.236.147:8002'; // Change to EC2 IP
+const FILES_BASE_URL = 'http://13.61.236.147:8002/files'; // Change to EC2 IP
 
 // Create separate instances for different services
 const submissionApi = axios.create({
