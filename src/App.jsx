@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import StudentForm from "./components/StudentForm";
 import FpcPortal from "./components/FpcPortal";
 import HodPortal from "./components/HodPortal";
@@ -10,7 +10,7 @@ import SuccessPage from "./components/SuccessPage";
 
 function App() {
   return (
-    <BrowserRouter basename="/student-portal">
+    <HashRouter basename="/student-portal">
       <Routes>
         <Route path="/" element={<StudentForm />} />
         <Route path="/success" element={<SuccessPage />} />
@@ -40,7 +40,7 @@ function App() {
           }
         />
       </Routes>
-    </BrowserRouter>
+      </HashRouter>
   );
 }
 

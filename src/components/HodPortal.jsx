@@ -20,7 +20,7 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { getApprovedSubmissions, createHodReview } from "../services/api";
+import { getApprovedSubmissions, createHodReview, getFileUrl } from "../services/api";
 
 function HodPortal() {
   const [applications, setApplications] = useState([]);
@@ -186,7 +186,7 @@ function HodPortal() {
                     </TableCell>
                     <TableCell>
                       {app.noc_path ? (
-                        <a href={app.noc_path} target="_blank" rel="noopener noreferrer">
+                        <a href={getFileUrl(app.noc_path)} target="_blank" rel="noopener noreferrer">
                           View NOC
                         </a>
                       ) : app.status === "NOC Ready" ? (

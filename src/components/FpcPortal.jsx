@@ -21,7 +21,7 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { getSubmissions, createFpcReview } from "../services/api";
+import { getSubmissions, createFpcReview, getFileUrl } from "../services/api";
 
 function FpcPortal() {
   const [applications, setApplications] = useState([]);
@@ -398,11 +398,9 @@ function FpcPortal() {
                             offerLetterError ? (
                               <Alert severity="error">{offerLetterError}</Alert>
                             ) : (
-                              <a
-                                href={app.offer_letter_path}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
+                              
+                              <a href={getFileUrl(app.offer_letter_path)} target="_blank" rel="noopener noreferrer">
+                              
                                 View Offer Letter
                               </a>
                             )
@@ -416,11 +414,9 @@ function FpcPortal() {
                           {mailCopyError ? (
                             <Alert severity="error">{mailCopyError}</Alert>
                           ) : (
-                            <a
-                              href={app.mail_copy_path}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
+                            
+                            <a href={getFileUrl(app.mail_copy_path)} target="_blank" rel="noopener noreferrer">
+                            
                               View Mail Copy
                             </a>
                           )}

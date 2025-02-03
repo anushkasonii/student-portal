@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const SUBMISSION_SERVICE_URL = 'http://localhost:8001';
 const MAIN_SERVICE_URL = 'http://localhost:8002';
+const FILES_BASE_URL = 'http://localhost:8002/files';
 
 // Create separate instances for different services
 const submissionApi = axios.create({
@@ -143,6 +144,10 @@ export const createFpc = async (fpcData) => {
     console.error('Error creating FPC:', error);
     throw error;
   }
+};
+
+export const getFileUrl = (filepath) => {
+  return `${FILES_BASE_URL}/${filepath}`;
 };
 
 export { submissionApi, mainApi };
