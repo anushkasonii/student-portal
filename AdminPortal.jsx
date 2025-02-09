@@ -1,6 +1,11 @@
 import bcrypt from "bcryptjs";
 import { useState, useEffect } from "react";
 import { getSubmissions } from "../services/api";
+import { getAdmins } from "../services/api";
+import { deleteHod, deleteFpc } from "../services/api";
+import { MenuItem } from "@mui/material";
+
+
 import {
   Container,
   Paper,
@@ -28,6 +33,7 @@ function AdminPortal() {
   const [applications, setApplications] = useState([]);
   const [fpcs, setFpcs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [admins, setAdmins] = useState([]);  
   const [error, setError] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogType, setDialogType] = useState(""); // "hod" or "fpc"
@@ -253,7 +259,15 @@ function AdminPortal() {
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                     Email
                   </TableCell>
-                  <TableCell>
+                  
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {fpcs.map((fpc) => (
+                  <TableRow key={fpc.id}>
+                    <TableCell>{fpc.name}</TableCell>
+                    <TableCell>{fpc.email}</TableCell>
+                    <TableCell>
                     <Button
                       variant="contained"
                       color="error"
@@ -263,13 +277,6 @@ function AdminPortal() {
                       Delete
                     </Button>
                   </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {fpcs.map((fpc) => (
-                  <TableRow key={fpc.id}>
-                    <TableCell>{fpc.name}</TableCell>
-                    <TableCell>{fpc.email}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
