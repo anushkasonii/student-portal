@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { useFormik } from "formik";
 import * as yup from "yup";
-import { submitApplication } from "../services/api";
+import { submitApplication, sendOtpToEmail, verifyEmailOtp } from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 const validationSchema = yup
@@ -74,7 +74,6 @@ const validationSchema = yup
       .required("Stipend amount is required")
       .positive("Stipend must be positive")
       .typeError("Please enter a valid number"),
-    nocType: yup.string().required("NOC Type is required"),
 
     startDate: yup.date().required("Start date is required"),
     endDate: yup.date().required("End date is required"),
@@ -95,7 +94,10 @@ const validationSchema = yup
       return true;
     }
   );
-
+  const validateEmail = (email) => {
+    const emailRegex = /^[a-zA-Z]+\.[a-zA-Z0-9]+@muj\.manipal\.edu$/;
+    return emailRegex.test(email);
+  };
 function StudentForm() {
   const navigate = useNavigate();
   const [formErrors, setFormErrors] = useState([]);
@@ -103,6 +105,10 @@ function StudentForm() {
   const [mailCopy, setMailCopy] = useState(null);
   const [fileError, setFileError] = useState("");
   const [submissionStatus, setSubmissionStatus] = useState("");
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [isEmailValid, setIsEmailValid] = useState(false);
 
   const validateFile = (file, isRequired = false) => {
     if (isRequired && !file) return "File is required";
@@ -140,6 +146,11 @@ function StudentForm() {
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
+      if (!emailVerified) {
+        setSubmissionStatus("Please verify your email first.");
+        return;
+      }
+
       try {
         setFileError("");
         setSubmissionStatus("");
@@ -237,6 +248,37 @@ function StudentForm() {
     setFileError("");
   };
 
+  const handleEmailChange = (e) => {
+    const email = e.target.value;
+    formik.handleChange(e);
+    setIsEmailValid(validateEmail(email));
+    setEmailVerified(false);
+    setOtpSent(false);
+  };
+
+  const handleSendOtp = async () => {
+    try {
+      setSubmissionStatus("Sending OTP...");
+      await sendOtpToEmail(formik.values.email);
+      setOtpSent(true);
+      setSubmissionStatus("OTP sent to your email.");
+    } catch (error) {
+      setSubmissionStatus("Failed to send OTP. Please try again.");
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    try {
+      setSubmissionStatus("Verifying OTP...");
+      await verifyEmailOtp({ email: formik.values.email, otp });
+
+      setEmailVerified(true);
+      setSubmissionStatus("Email verified successfully!");
+    } catch (error) {
+      setSubmissionStatus("Invalid OTP. Please try again.");
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -325,7 +367,7 @@ function StudentForm() {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12}>
                 <TextField
                   fullWidth
                   id="email"
@@ -333,11 +375,42 @@ function StudentForm() {
                   label="Official Email ID"
                   type="email"
                   value={formik.values.email}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
+                  onChange={handleEmailChange}
+                  onBlur={formik.handleBlur}
                   error={formik.touched.email && Boolean(formik.errors.email)}
                   helperText={formik.touched.email && formik.errors.email}
+                  disabled={emailVerified}
                 />
+                {isEmailValid && !emailVerified && (
+                  <Box sx={{ mt: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+                    <Button
+                      variant="contained"
+                      onClick={handleSendOtp}
+                      disabled={otpSent}
+                      sx={{ backgroundColor: "#d05c24" }}
+                    >
+                      {otpSent ? "OTP Sent" : "Send OTP"}
+                    </Button>
+                    {otpSent && (
+                      <>
+                        <TextField
+                          size="small"
+                          placeholder="Enter OTP"
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          sx={{ width: '150px' }}
+                        />
+                        <Button
+                          variant="contained"
+                          onClick={handleVerifyOtp}
+                          sx={{ backgroundColor: "#d05c24" }}
+                        >
+                          Verify OTP
+                        </Button>
+                      </>
+                    )}
+                  </Box>
+                )}
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -350,6 +423,7 @@ function StudentForm() {
                   onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={formik.touched.mobile && Boolean(formik.errors.mobile)}
                   helperText={formik.touched.mobile && formik.errors.mobile}
+                  disabled={!emailVerified}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -369,6 +443,7 @@ function StudentForm() {
                   helperText={
                     formik.touched.department && formik.errors.department
                   }
+                  disabled={!emailVerified}
                 >
                   <MenuItem value="CSE">CSE</MenuItem>
                   <MenuItem value="IT">IT</MenuItem>
@@ -384,11 +459,12 @@ function StudentForm() {
                   type="number"
                   value={formik.values.semester}
                   onChange={formik.handleChange}
-                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
+                  onBlur={formik.handleBlur}
                   error={
                     formik.touched.semester && Boolean(formik.errors.semester)
                   }
                   helperText={formik.touched.semester && formik.errors.semester}
+                  disabled={!emailVerified}
                 >
                   <MenuItem value="1">1</MenuItem>
                   <MenuItem value="2">2</MenuItem>
@@ -397,6 +473,7 @@ function StudentForm() {
                   <MenuItem value="5">5</MenuItem>
                   <MenuItem value="6">6</MenuItem>
                   <MenuItem value="7">7</MenuItem>
+                  <MenuItem value="8">8</MenuItem>
                 </TextField>
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -411,6 +488,7 @@ function StudentForm() {
                   onBlur={formik.handleBlur} // ✅ Ensures validation runs
                   error={formik.touched.gender && Boolean(formik.errors.gender)}
                   helperText={formik.touched.gender && formik.errors.gender}
+                  disabled={!emailVerified}
                 >
                   <MenuItem value="Male">Male</MenuItem>
                   <MenuItem value="Female">Female</MenuItem>
@@ -430,6 +508,7 @@ function StudentForm() {
                     formik.touched.section && Boolean(formik.errors.section)
                   }
                   helperText={formik.touched.section && formik.errors.section}
+                  disabled={!emailVerified}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -446,6 +525,7 @@ function StudentForm() {
                     formik.touched.nocType && Boolean(formik.errors.nocType)
                   }
                   helperText={formik.touched.nocType && formik.errors.nocType}
+                  disabled={!emailVerified}
                 >
                   <MenuItem value="Specific">Specific</MenuItem>
                   <MenuItem value="Generic">Generic </MenuItem>
@@ -468,6 +548,7 @@ function StudentForm() {
                   helperText={
                     formik.touched.offerType && formik.errors.offerType
                   }
+                  disabled={!emailVerified}
                 >
                   <MenuItem value="On-Campus">On-Campus</MenuItem>
                   <MenuItem value="Off-Campus">Off-Campus</MenuItem>
@@ -489,6 +570,7 @@ function StudentForm() {
                   helperText={
                     formik.touched.companyName && formik.errors.companyName
                   }
+                  disabled={!emailVerified}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -509,6 +591,7 @@ function StudentForm() {
                   helperText={
                     formik.touched.companyCity && formik.errors.companyCity
                   }
+                  disabled={!emailVerified}
                 />
               </Grid>
               <Grid item xs={4}>
@@ -527,6 +610,7 @@ function StudentForm() {
                   helperText={
                     formik.touched.companyState && formik.errors.companyState
                   }
+                  disabled={!emailVerified}
                 />
               </Grid>
               <Grid item xs={4}>
@@ -545,6 +629,7 @@ function StudentForm() {
                   helperText={
                     formik.touched.companyPin && formik.errors.companyPin
                   }
+                  disabled={!emailVerified}
                 />
                </Grid>
   </Grid>
@@ -567,6 +652,7 @@ function StudentForm() {
                     formik.touched.internshipType &&
                     formik.errors.internshipType
                   }
+                  disabled={!emailVerified}
                 >
                   <MenuItem value="Internship Only">Internship Only</MenuItem>
                   <MenuItem value="Internship with PPO">
@@ -592,6 +678,7 @@ function StudentForm() {
                     helperText={
                       formik.touched.ppoPackage && formik.errors.ppoPackage
                     }
+                    disabled={!emailVerified}
                   />
                 </Grid>
               )}
@@ -609,6 +696,7 @@ function StudentForm() {
                     formik.touched.stipend && Boolean(formik.errors.stipend)
                   }
                   helperText={formik.touched.stipend && formik.errors.stipend}
+                  disabled={!emailVerified}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -628,6 +716,7 @@ function StudentForm() {
                     formik.touched.startDate && formik.errors.startDate
                   }
                   InputLabelProps={{ shrink: true }}
+                  disabled={!emailVerified}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -645,6 +734,7 @@ function StudentForm() {
                   }
                   helperText={formik.touched.endDate && formik.errors.endDate}
                   InputLabelProps={{ shrink: true }}
+                  disabled={!emailVerified}
                 />
               </Grid>
               {/* HRD Contact Section */}
@@ -661,6 +751,7 @@ function StudentForm() {
                     formik.touched.hrdEmail && Boolean(formik.errors.hrdEmail)
                   }
                   helperText={formik.touched.hrdEmail && formik.errors.hrdEmail}
+                  disabled={!emailVerified}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -678,6 +769,7 @@ function StudentForm() {
                   helperText={
                     formik.touched.hrdNumber && formik.errors.hrdNumber
                   }
+                  disabled={!emailVerified}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -692,6 +784,7 @@ function StudentForm() {
                       type="file"
                       onChange={handleOfferLetterChange}
                       required={formik.values.nocType === "Specific"}
+                      disabled={!emailVerified}
                     />
                   </Grid>
                 )}
@@ -704,6 +797,7 @@ function StudentForm() {
                     type="file"
                     onChange={handleMailCopyChange}
                     required
+                    disabled={!emailVerified}
                   />
                 </Grid>
               </Grid>
@@ -717,6 +811,7 @@ function StudentForm() {
                       name="termsAccepted"
                       checked={formik.values.termsAccepted}
                       onChange={formik.handleChange}
+                      disabled={!emailVerified}
                     />
                   }
                   label="I hereby declare that all the information provided is true to the best of my knowledge"

@@ -1,20 +1,27 @@
-import { Navigate } from 'react-router-dom';
+import React from "react";
+import { Navigate } from "react-router-dom";
 
-function ProtectedRoute({ children, role }) {
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-  const userRole = localStorage.getItem('userRole');
+const ProtectedRoute = ({ children, role }) => {
+  console.log("ProtectedRoute Rendered"); // Debugging log
 
+  const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+  const userRole = localStorage.getItem("userRole");
 
+  console.log("isAuthenticated:", isAuthenticated);
+  console.log("Stored userRole:", userRole);
+  console.log("Required role:", role);
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    console.warn("User not authenticated, redirecting to login...");
+    return <Navigate to="/login" replace />;
   }
 
   if (role && role !== userRole) {
-    return <Navigate to="/" />;
+    console.warn("User role mismatch, redirecting to login...");
+    return <Navigate to="/login" replace />;
   }
 
   return children;
-}
+};
 
 export default ProtectedRoute;

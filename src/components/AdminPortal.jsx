@@ -1,6 +1,10 @@
-import bcrypt from 'bcryptjs';
 import { useState, useEffect } from "react";
-import { getSubmissions } from '../services/api';
+import { getSubmissions } from "../services/api";
+import { getAdmins } from "../services/api";
+import { deleteHod, deleteFpc } from "../services/api";
+import { MenuItem } from "@mui/material";
+
+
 import {
   Container,
   Paper,
@@ -28,6 +32,7 @@ function AdminPortal() {
   const [applications, setApplications] = useState([]);
   const [fpcs, setFpcs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [admins, setAdmins] = useState([]);
   const [error, setError] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogType, setDialogType] = useState(""); // "hod" or "fpc"
@@ -53,13 +58,18 @@ function AdminPortal() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const fetchedHods = await getHods();
-      const fetchedFpcs = await getFpcs();
-      setHods(fetchedHods);
-      setFpcs(fetchedFpcs);
+      const [fetchedHods, fetchedFpcs, fetchedAdmins] = await Promise.all([
+        getHods(),
+        getFpcs(),
+        getAdmins(),
+      ]);
+
+      setHods(Array.isArray(fetchedHods) ? fetchedHods : []);
+      setFpcs(Array.isArray(fetchedFpcs) ? fetchedFpcs : []);
+      setAdmins(Array.isArray(fetchedAdmins) ? fetchedAdmins : []);
       setError("");
     } catch (err) {
-      setError("Failed to fetch data");
+      setError("Failed to fetch data: " + err.message);
       console.error(err);
     } finally {
       setLoading(false);
@@ -78,34 +88,68 @@ function AdminPortal() {
     setFormData({ name: "", email: "" });
   };
 
-  const handleSubmit = async () => {
-    if (!formData.name || !formData.email || !formData.password || !formData.department) {
-      setError("Please fill all fields");
-      return;
-    }
+  const handleDelete = async (type, id) => {
     try {
-      const passwordHash = await bcrypt.hash(formData.password, 10);
-  
+      setLoading(true);
+      if (type === "hod") {
+        await deleteHod(id);
+      } else {
+        await deleteFpc(id);
+      }
+      await fetchData();
+    } catch (err) {
+      setError(`Failed to delete ${type.toUpperCase()}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const validateEmail = (email) => {
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(email);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      if (
+        !formData.name ||
+        !formData.email ||
+        !formData.password ||
+        !formData.department
+      ) {
+        setError("Please fill all fields");
+        return;
+      }
+      if (!validateEmail(formData.email)) {
+        setError("Please enter a valid email address");
+        return;
+      }
+
+      setLoading(true);
+
       const payload = {
         name: formData.name,
         email: formData.email,
-        app_password: passwordHash,   
+        app_password: formData.password,
         department: formData.department,
       };
-  
+
       if (dialogType === "hod") {
-        await createHod(payload);
+        await createHod({ ...payload, password: formData.password });
       } else if (dialogType === "fpc") {
-        await createFpc(payload);
+        await createFpc({ ...payload, password: formData.password });
       }
-      fetchData();
+
+      await fetchData(); // Refresh data after successful creation
       handleCloseDialog();
+      setError(""); // Clear any existing errors
     } catch (err) {
-      setError("Failed to create entry");
+      setError(err.response?.data?.error || "Failed to create entry");
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
-  
 
   if (loading) {
     return (
@@ -214,6 +258,7 @@ function AdminPortal() {
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                     Email
                   </TableCell>
+
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -221,6 +266,16 @@ function AdminPortal() {
                   <TableRow key={fpc.id}>
                     <TableCell>{fpc.name}</TableCell>
                     <TableCell>{fpc.email}</TableCell>
+                    <TableCell>
+                    <Button
+                      variant="contained"
+                      color="error"
+                      size="small"
+                      onClick={() => handleDelete("hod", fpc.id)}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -264,7 +319,7 @@ function AdminPortal() {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              sx={{ mb: 2 , mt:3}}
+              sx={{ mb: 2, mt: 3 }}
             />
             <TextField
               label="Email"
@@ -286,6 +341,7 @@ function AdminPortal() {
               sx={{ mb: 2 }}
             />
             <TextField
+              select
               label="Department"
               fullWidth
               value={formData.department}
@@ -293,7 +349,11 @@ function AdminPortal() {
                 setFormData({ ...formData, department: e.target.value })
               }
               sx={{ mb: 2 }}
-            />
+            >
+              <MenuItem value="CSE">CSE</MenuItem>
+              <MenuItem value="IT">IT</MenuItem>
+              {/* Add other departments as needed */}
+            </TextField>
           </DialogContent>
           <DialogActions>
             <Button

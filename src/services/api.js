@@ -1,8 +1,10 @@
 import axios from 'axios';
+import { getIdFromToken } from "../utils/authUtils"; // Ensure the path is correct
 
-const SUBMISSION_SERVICE_URL = 'http://13.61.236.147:8001'; // Change to EC2 IP
-const MAIN_SERVICE_URL = 'http://13.61.236.147:8002'; // Change to EC2 IP
-const FILES_BASE_URL = 'http://13.61.236.147:8002/files'; // Change to EC2 IP
+
+const SUBMISSION_SERVICE_URL = 'http://13.61.236.147:8001/';
+const MAIN_SERVICE_URL = 'http://13.61.236.147:8001/';
+const FILES_BASE_URL = 'http://13.61.236.147:8001/files';
 
 // Create separate instances for different services
 const submissionApi = axios.create({
@@ -30,6 +32,9 @@ const mainApi = axios.create({
   });
 });
 
+
+
+
 // Auth endpoints
 export const loginFpc = async (credentials) => {
   const response = await mainApi.post('/fpc/login', credentials);
@@ -43,7 +48,34 @@ export const loginHod = async (credentials) => {
 
 export const loginAdmin = async (credentials) => {
   const response = await mainApi.post('/admin/login', credentials);
+  localStorage.setItem('token', response.data.token);
+  localStorage.setItem('userRole', 'admin');
+  localStorage.setItem('userId', response.data.id); // Store user ID before redirecting
+  setTimeout(() => {
+    window.location.href = "/admin";  // Redirect after saving token
+  }, 500); // Add delay to ensure storage completes
   return response.data;
+};
+
+// OTP endpoints
+export const sendOtpToEmail = async (email) => {
+  try {
+    const response = await submissionApi.post('/generate-otp', { email });
+    return response.data;
+  } catch (error) {
+    console.error('Error generating OTP:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const verifyEmailOtp = async (email, otp) => {
+  try {
+    const response = await submissionApi.post('/validate-otp', { email, otp });
+    return response.data;
+  } catch (error) {
+    console.error('Error validating OTP:', error.response?.data || error.message);
+    throw error;
+  }
 };
 
 // Submission endpoints
@@ -64,23 +96,53 @@ export const submitApplication = async (formData) => {
 // FPC endpoints
 export const getSubmissions = async () => {
   try {
-    const response = await mainApi.get('/fpc/submissions');
-    return response.data.submissions;
+    const response = await mainApi.get('/fpc/submissions', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    });
+    // Check if response.data exists and has submissions array
+    if (!response.data || !Array.isArray(response.data.submissions)) {
+      throw new Error('Invalid data format or submissions key missing');
+    }
+    return response.data.submissions;  // Return the entire data object to match the API response structure
   } catch (error) {
     console.error('Error fetching submissions:', error);
-    throw error;
+    // Throw a more informative error message
+    throw new Error(error.response?.data?.message || 'Failed to fetch submissions');
   }
 };
 
 export const createFpcReview = async (reviewData) => {
   try {
-    const response = await mainApi.post('/fpc/fpc_reviews', reviewData);
+    const response = await mainApi.post('/fpc/fpc_reviews', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      submission_id: reviewData.submission_id,
+      fpc_id: getIdFromToken("fpc"),
+      status: reviewData.status,
+      comments: reviewData.comments,
+    });
     return response.data;
   } catch (error) {
     console.error('Error creating FPC review:', error);
     throw error;
   }
 };
+
+export const createHodReview = async (reviewData) => {
+  try {
+    const response = await mainApi.post('/hod/hod_reviews', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      submission_id: reviewData.submission_id,
+      hod_id: getIdFromToken("hod"),
+      action: reviewData.status,
+      remarks: reviewData.comments,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating HOD review:', error);
+    throw error;
+  }
+};
+
 
 // HOD endpoints
 export const getApprovedSubmissions = async (nocType) => {
@@ -95,40 +157,65 @@ export const getApprovedSubmissions = async (nocType) => {
   }
 };
 
-export const createHodReview = async (reviewData) => {
-  try {
-    const response = await mainApi.post('/hod/hod_reviews', reviewData);
-    return response.data;
-  } catch (error) {
-    console.error('Error creating HOD review:', error);
-    throw error;
-  }
-};
+
 
 // Admin endpoints
 export const getHods = async () => {
   try {
-    const response = await mainApi.get('/admin/hods');
-    return response.data;
+    const response = await mainApi.get('/admin/hods', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.data || []; // Ensure we return an empty array if no data
   } catch (error) {
     console.error('Error fetching HODs:', error);
     throw error;
   }
 };
 
+
 export const getFpcs = async () => {
   try {
-    const response = await mainApi.get('/admin/fpcs');
-    return response.data;
+    const response = await mainApi.get('/admin/fpcs', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.data || []; // Ensure we return an empty array if no data
   } catch (error) {
     console.error('Error fetching FPCs:', error);
     throw error;
   }
 };
 
+export const getAdmins = async () => {
+  try {
+    const response = await mainApi.get('/admin');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching admins:', error);
+    throw error;
+  }
+};
+
+
+
 export const createHod = async (hodData) => {
   try {
-    const response = await mainApi.post('/admin/hod', hodData);
+    const response = await mainApi.post('/admin/hod', {
+      name: hodData.name,
+      email: hodData.email,
+      password: hodData.password,
+      department: hodData.department
+    }, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error creating HOD:', error);
@@ -138,13 +225,48 @@ export const createHod = async (hodData) => {
 
 export const createFpc = async (fpcData) => {
   try {
-    const response = await mainApi.post('/admin/fpc', fpcData);
+    const response = await mainApi.post('/admin/fpc', {
+      name: fpcData.name,
+      email: fpcData.email,
+      password: fpcData.password,
+      department: fpcData.department
+    }, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error creating FPC:', error);
     throw error;
   }
 };
+
+export const deleteHod = async (id) => {
+  try {
+    const response = await mainApi.delete(`/admin/hod?id=${id}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting HOD:', error);
+    throw error;
+  }
+};
+
+export const deleteFpc = async (id) => {
+  try {
+    const response = await mainApi.delete(`/admin/fpc?id=${id}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting FPC:', error);
+    throw error;
+  }
+};
+
 
 export const getFileUrl = (filepath) => {
   return `${FILES_BASE_URL}/${filepath}`;

@@ -39,23 +39,21 @@ function FpcPortal() {
   const fetchSubmissions = async () => {
     try {
       setLoading(true);
-      const data = await getSubmissions();
-      console.log("Fetched Submissions:", data); // Log fetched data for debugging
-      // Ensure the response is an array before setting it
-      if (Array.isArray(data)) {
-        setApplications(data); // Set applications if data is valid
-      } else {
-        throw new Error("Invalid data format"); // Handle invalid data format
-      }
+      const response = await getSubmissions();
+      console.log("Fetched Response:", response); // Log entire response for debugging
+      
+      // Since getSubmissions now returns the entire data object
+      // and we've already validated the submissions array in getSubmissions
+      setApplications(response.submissions);
       setError(""); // Clear any previous errors
     } catch (error) {
-      setError("Failed to fetch submissions");
-      console.error("Error fetching submissions:", error); // Log detailed error
+      setError(error.message || "Failed to fetch submissions");
+      console.error("Error fetching submissions:", error);
       setApplications([]); // Clear applications on error
     } finally {
       setLoading(false);
     }
-  };
+  };  
 
   const handleActionClick = (app, actionType) => {
     setSelectedApp(app);

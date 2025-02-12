@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginAdmin, loginHod, loginFpc } from "../services/api"; 
+import { loginAdmin, loginHod, loginFpc } from "../services/api";
 import { CircularProgress } from "@mui/material";
 import logo from "./muj_header.png";
 
@@ -12,8 +12,6 @@ import {
   Button,
   Box,
   Alert,
-  FormControlLabel,
-  Switch,
 } from "@mui/material";
 
 function Login() {
@@ -40,9 +38,8 @@ function Login() {
     const credentials = {
       email: formData.email,
       password: formData.password,
-      is_app_password: useAppPassword
     };
-    
+
 
     // List of login functions to try
     const loginFunctions = [
@@ -64,6 +61,7 @@ function Login() {
         return;
       } catch (err) {
         console.error(`Failed login for ${role}:`, err);
+        break;
       }
     }
 
