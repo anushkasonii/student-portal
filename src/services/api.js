@@ -73,20 +73,21 @@ export const sendOtpToEmail = async (email) => {
 
 export const verifyEmailOtp = async (email, otp) => {
   try {
-    // Check if email is an object, extract the correct value
     if (typeof email === "object" && email.email) {
-      email = email.email; // Fix incorrect nesting
+      email = email.email;
+    }
+    if (typeof otp === "object" && otp.otp) {
+      otp = otp.otp;
     }
 
-    if (typeof email !== "string") {
-      throw new Error(`email should be a string, but received: ${JSON.stringify(email)}`);
+    if (typeof email !== "string" || typeof otp !== "string") {
+      throw new Error(`Invalid input: email=${JSON.stringify(email)}, otp=${JSON.stringify(otp)}`);
     }
 
     const requestData = { email, otp };
     console.log("Sending OTP validation request:", requestData);
 
     const response = await submissionApi.post('/validate-otp', requestData);
-
     console.log("OTP Validation Response:", response.data);
     return response.data;
   } catch (error) {
