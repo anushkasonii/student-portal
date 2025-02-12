@@ -42,7 +42,6 @@ function FpcPortal() {
       const response = await getSubmissions();
       console.log("Fetched Response:", response);
       
-      // Since response is directly an array, we don't need to access .submissions
       setApplications(Array.isArray(response) ? response : []);
       setError("");
     } catch (error) {
@@ -232,7 +231,7 @@ function FpcPortal() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {!applications || applications.length === 0 ? (
+                {applications.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={12} align="center">
                       No applications found
