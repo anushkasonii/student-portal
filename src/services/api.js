@@ -33,9 +33,6 @@ const mainApi = axios.create({
   });
 });
 
-
-
-
 // Auth endpoints
 export const loginFpc = async (credentials) => {
   const response = await mainApi.post('/fpc/login', credentials);
@@ -73,40 +70,21 @@ export const sendOtpToEmail = async (email) => {
 
 export const verifyEmailOtp = async (email, otp) => {
   try {
-    // Input validation
-    if (!email || !otp) {
-      throw new Error('Email and OTP are required');
+    if (typeof email !== "string") {
+      console.error("Error: email should be a string, but received:", email);
+      throw new Error("Invalid email format");
     }
 
-    // Handle cases where email/otp are passed as objects
-    const emailValue = typeof email === 'object' ? email.email : email;
-    const otpValue = typeof otp === 'object' ? otp.otp : otp;
-
-    // Additional validation
-    if (!emailValue || typeof emailValue !== 'string') {
-      throw new Error(`Invalid email: ${JSON.stringify(emailValue)}`);
-    }
-
-    if (!otpValue || typeof otpValue !== 'string') {
-      throw new Error(`Invalid OTP: ${JSON.stringify(otpValue)}`);
-    }
-
-    const requestData = {
-      email: emailValue.trim(),
-      otp: otpValue.trim()
-    };
-
+    const requestData = { email, otp };
     console.log("Sending OTP validation request:", requestData);
 
     const response = await submissionApi.post('/validate-otp', requestData);
-    console.log("OTP Validation Response:", response.data);
-    return response.data;
 
+    console.log("OTP Validation Response:", response.data); 
+    return response.data;
   } catch (error) {
-    // Enhanced error handling
-    const errorMessage = error.response?.data?.error || error.message;
-    console.error('Error validating OTP:', errorMessage);
-    throw new Error(errorMessage);
+    console.error('Error validating OTP:', error.response?.data || error.message);
+    throw error;
   }
 };
 
