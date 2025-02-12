@@ -61,7 +61,9 @@ export const loginAdmin = async (credentials) => {
 // OTP endpoints
 export const sendOtpToEmail = async (email) => {
   try {
+    console.log("Sending OTP request:", { email }); 
     const response = await submissionApi.post('/generate-otp', { email });
+    console.log("OTP Sent:", response.data); 
     return response.data;
   } catch (error) {
     console.error('Error generating OTP:', error.response?.data || error.message);
@@ -71,7 +73,18 @@ export const sendOtpToEmail = async (email) => {
 
 export const verifyEmailOtp = async (email, otp) => {
   try {
-    const response = await submissionApi.post('/validate-otp', { email, otp });
+    const requestData = JSON.stringify({ email, otp }); // handling error: 'Invalid JSON format'
+    console.log("Sending OTP validation request:", requestData); 
+
+    const response = await submissionApi.post(
+      '/validate-otp',
+      requestData,
+      {
+        headers: { 'Content-Type': 'application/json' }, 
+      }
+    );
+
+    console.log("OTP Validation Response:", response.data); 
     return response.data;
   } catch (error) {
     console.error('Error validating OTP:', error.response?.data || error.message);
