@@ -73,12 +73,13 @@ export const sendOtpToEmail = async (email) => {
 
 export const verifyEmailOtp = async (email, otp) => {
   try {
-    // Debugging to check data before sending
-    console.log("Before sending, Email:", email, "OTP:", otp, "Type of email:", typeof email);
-
-    // Ensure email is a string
+    // Check if email is an object, extract the correct value
     if (typeof email === "object" && email.email) {
-      email = email.email;  
+      email = email.email; // Fix incorrect nesting
+    }
+
+    if (typeof email !== "string") {
+      throw new Error(`email should be a string, but received: ${JSON.stringify(email)}`);
     }
 
     const requestData = { email, otp };
