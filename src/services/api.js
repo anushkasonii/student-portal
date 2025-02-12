@@ -73,16 +73,15 @@ export const sendOtpToEmail = async (email) => {
 
 export const verifyEmailOtp = async (email, otp) => {
   try {
-    const requestData = JSON.stringify({ email, otp }); // handling error: 'Invalid JSON format'
-    console.log("Sending OTP validation request:", requestData); 
+    if (typeof email !== "string") {
+      console.error("Error: email should be a string, but received:", email);
+      throw new Error("Invalid email format");
+    }
 
-    const response = await submissionApi.post(
-      '/validate-otp',
-      requestData,
-      {
-        headers: { 'Content-Type': 'application/json' }, 
-      }
-    );
+    const requestData = { email, otp };
+    console.log("Sending OTP validation request:", requestData);
+
+    const response = await submissionApi.post('/validate-otp', requestData);
 
     console.log("OTP Validation Response:", response.data); 
     return response.data;
