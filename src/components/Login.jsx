@@ -17,7 +17,6 @@ import {
 function Login() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [useAppPassword, setUseAppPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -40,7 +39,6 @@ function Login() {
       password: formData.password,
     };
 
-
     // List of login functions to try
     const loginFunctions = [
       { fn: loginAdmin, role: "admin", path: "/admin" },
@@ -48,25 +46,30 @@ function Login() {
       { fn: loginFpc, role: "fpc", path: "/fpc" },
     ];
 
+    let loginSuccessful = false;
+
     for (const { fn, role, path } of loginFunctions) {
       try {
         const response = await fn(credentials);
-
+        // If login succeeds, set the tokens and navigate
         localStorage.setItem("token", response.token);
         localStorage.setItem("userRole", role);
         localStorage.setItem("userId", response.id);
         localStorage.setItem("isAuthenticated", "true");
-
+        loginSuccessful = true;
         navigate(path);
-        return;
+        break;
       } catch (err) {
         console.error(`Failed login for ${role}:`, err);
-        break;
+        // Continue to next login attempt if this one fails
+        continue;
       }
     }
 
-    setError("Invalid credentials. Please try again.");
-    setLoading(false);
+    if (!loginSuccessful) {
+      setError("Invalid credentials. Please try again.");
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -153,10 +156,10 @@ function Login() {
                 sx={{ backgroundColor: "#fdfdfd" }}
               />
             </Box>
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: 4 }}>
               <TextField
                 fullWidth
-                label={useAppPassword ? "App Password" : "Password"}
+                label="Password"
                 name="password"
                 type="password"
                 value={formData.password}
@@ -166,18 +169,6 @@ function Login() {
                 sx={{ backgroundColor: "#fdfdfd" }}
               />
             </Box>
-            {/* <Box sx={{ mb: 3 }}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={useAppPassword}
-                    onChange={(e) => setUseAppPassword(e.target.checked)}
-                    color="primary"
-                  />
-                }
-                label="Use App Password"
-              />
-            </Box> */}
             <Box sx={{ textAlign: "center" }}>
               <Button
                 type="submit"
