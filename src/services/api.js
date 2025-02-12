@@ -73,9 +73,12 @@ export const sendOtpToEmail = async (email) => {
 
 export const verifyEmailOtp = async (email, otp) => {
   try {
-    if (typeof email !== "string") {
-      console.error("Error: email should be a string, but received:", email);
-      throw new Error("Invalid email format");
+    // Debugging to check data before sending
+    console.log("Before sending, Email:", email, "OTP:", otp, "Type of email:", typeof email);
+
+    // Ensure email is a string
+    if (typeof email === "object" && email.email) {
+      email = email.email;  
     }
 
     const requestData = { email, otp };
@@ -83,7 +86,7 @@ export const verifyEmailOtp = async (email, otp) => {
 
     const response = await submissionApi.post('/validate-otp', requestData);
 
-    console.log("OTP Validation Response:", response.data); 
+    console.log("OTP Validation Response:", response.data);
     return response.data;
   } catch (error) {
     console.error('Error validating OTP:', error.response?.data || error.message);
