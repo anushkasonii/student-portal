@@ -2,9 +2,10 @@ import axios from 'axios';
 import { getIdFromToken } from "../utils/authUtils"; // Ensure the path is correct
 
 
-const SUBMISSION_SERVICE_URL = 'http://13.61.236.147:8001/';
-const MAIN_SERVICE_URL = 'http://13.61.236.147:8001/';
-const FILES_BASE_URL = 'http://13.61.236.147:8001/files';
+const SUBMISSION_SERVICE_URL = 'http://13.61.199.53:8002';
+const MAIN_SERVICE_URL = 'http://13.61.199.53:8002';
+const FILES_BASE_URL = 'http://13.61.199.53:8002/files';
+
 
 // Create separate instances for different services
 const submissionApi = axios.create({
