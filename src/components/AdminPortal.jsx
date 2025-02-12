@@ -1,10 +1,6 @@
 import { useState, useEffect } from "react";
-import { getSubmissions } from "../services/api";
-import { getAdmins } from "../services/api";
 import { deleteHod, deleteFpc } from "../services/api";
 import { MenuItem } from "@mui/material";
-
-
 import {
   Container,
   Paper,
@@ -27,78 +23,106 @@ import {
 } from "@mui/material";
 import { getHods, getFpcs, createHod, createFpc } from "../services/api";
 
+// Logger utility for consistent logging
+const Logger = {
+  info: (message, data) => {
+    console.log(`[AdminPortal][INFO] ${message}`, data ? data : '');
+  },
+  error: (message, error) => {
+    console.error(`[AdminPortal][ERROR] ${message}`, error);
+  },
+  warn: (message, data) => {
+    console.warn(`[AdminPortal][WARN] ${message}`, data ? data : '');
+  }
+};
+
 function AdminPortal() {
   const [hods, setHods] = useState([]);
-  const [applications, setApplications] = useState([]);
   const [fpcs, setFpcs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [admins, setAdmins] = useState([]);
   const [error, setError] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
-  const [dialogType, setDialogType] = useState(""); // "hod" or "fpc"
+  const [dialogType, setDialogType] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
+    app_password: "",
     department: "",
-  });
+  });  
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const submissions = await getSubmissions();
-        setApplications(submissions);
-      } catch (error) {
-        console.error(error);
-      }
-    }
+    Logger.info("Component mounted, initializing data fetch");
     fetchData();
+    return () => {
+      Logger.info("Component unmounting");
+    };
   }, []);
 
   const fetchData = async () => {
+    Logger.info("Starting data fetch operation");
     try {
       setLoading(true);
-      const [fetchedHods, fetchedFpcs, fetchedAdmins] = await Promise.all([
-        getHods(),
-        getFpcs(),
-        getAdmins(),
-      ]);
+      
+      Logger.info("Fetching HODs data");
+      const fetchedHods = await getHods();
+      Logger.info("HODs data received", { count: fetchedHods?.length });
+
+      Logger.info("Fetching FPCs data");
+      const fetchedFpcs = await getFpcs();
+      Logger.info("FPCs data received", { count: fetchedFpcs?.length });
+
+      if (!Array.isArray(fetchedHods)) {
+        Logger.warn("HODs data is not an array", { received: typeof fetchedHods });
+      }
+      if (!Array.isArray(fetchedFpcs)) {
+        Logger.warn("FPCs data is not an array", { received: typeof fetchedFpcs });
+      }
 
       setHods(Array.isArray(fetchedHods) ? fetchedHods : []);
       setFpcs(Array.isArray(fetchedFpcs) ? fetchedFpcs : []);
-      setAdmins(Array.isArray(fetchedAdmins) ? fetchedAdmins : []);
       setError("");
+      Logger.info("Data fetch completed successfully");
     } catch (err) {
-      setError("Failed to fetch data: " + err.message);
-      console.error(err);
+      const errorMessage = "Failed to fetch data";
+      Logger.error(errorMessage, err);
+      setError(`${errorMessage}: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   const handleOpenDialog = (type) => {
+    Logger.info("Opening dialog", { type });
     setDialogType(type);
     setOpenDialog(true);
-    setFormData({ name: "", email: "" });
+    setFormData({ name: "", email: "", password: "", app_password: "", department: "" });
   };
 
   const handleCloseDialog = () => {
+    Logger.info("Closing dialog");
     setOpenDialog(false);
     setDialogType("");
-    setFormData({ name: "", email: "" });
+    setFormData({ name: "", email: "", password: "", app_password: "", department: "" });
   };
 
   const handleDelete = async (type, id) => {
+    Logger.info("Attempting deletion", { type, id });
     try {
       setLoading(true);
       if (type === "hod") {
+        Logger.info("Deleting HOD", { id });
         await deleteHod(id);
       } else {
+        Logger.info("Deleting FPC", { id });
         await deleteFpc(id);
       }
+      Logger.info("Deletion successful, refreshing data");
       await fetchData();
     } catch (err) {
-      setError(`Failed to delete ${type.toUpperCase()}`);
+      const errorMessage = `Failed to delete ${type.toUpperCase()}`;
+      Logger.error(errorMessage, err);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -106,46 +130,58 @@ function AdminPortal() {
 
   const validateEmail = (email) => {
     const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return regex.test(email);
+    const isValid = regex.test(email);
+    Logger.info("Email validation", { email, isValid });
+    return isValid;
   };
 
   const handleSubmit = async () => {
+    Logger.info("Processing form submission", { dialogType });
     try {
-      if (
-        !formData.name ||
-        !formData.email ||
-        !formData.password ||
-        !formData.department
-      ) {
+      // Validation checks
+      if (!formData.name || !formData.email || !formData.password || !formData.app_password || !formData.department) {
+        Logger.warn("Incomplete form data", { formData: { ...formData, password: '[REDACTED]', app_password: '[REDACTED]' } });
         setError("Please fill all fields");
         return;
       }
+  
       if (!validateEmail(formData.email)) {
+        Logger.warn("Invalid email format", { email: formData.email });
         setError("Please enter a valid email address");
         return;
       }
-
+  
       setLoading(true);
-
+      
+      // Construct payload according to backend requirements
       const payload = {
-        name: formData.name,
         email: formData.email,
-        app_password: formData.password,
+        name: formData.name,
+        password: formData.password,
         department: formData.department,
+        app_password: formData.app_password
       };
-
+  
+      Logger.info("Submitting data", { 
+        type: dialogType, 
+        payload: { ...payload, password: '[REDACTED]', app_password: '[REDACTED]' } 
+      });
+  
       if (dialogType === "hod") {
-        await createHod({ ...payload, password: formData.password });
+        await createHod(payload);
+        Logger.info("HOD created successfully");
       } else if (dialogType === "fpc") {
-        await createFpc({ ...payload, password: formData.password });
+        await createFpc(payload);
+        Logger.info("FPC created successfully");
       }
-
-      await fetchData(); // Refresh data after successful creation
+  
+      await fetchData();
       handleCloseDialog();
-      setError(""); // Clear any existing errors
+      setError("");
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to create entry");
-      console.error(err);
+      const errorMessage = err.response?.data?.error || "Failed to create entry";
+      Logger.error("Submission failed", err);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -205,94 +241,109 @@ function AdminPortal() {
             </Alert>
           )}
 
-          {/* HODs Table */}
-          <Typography variant="h5" sx={{ mb: 2, color: "#d05c24" }}>
-            List of HODs
-          </Typography>
-          <TableContainer component={Paper} sx={{ mb: 4 }}>
-            <Table>
-              <TableHead sx={{ backgroundColor: "#D97C4F" }}>
-                <TableRow>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                    Name
-                  </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                    Email
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {hods.map((hod) => (
-                  <TableRow key={hod.id}>
-                    <TableCell>{hod.name}</TableCell>
-                    <TableCell>{hod.email}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Button
-            variant="contained"
-            sx={{
-              mb: 4,
-              backgroundColor: "#d05c24",
-              color: "white",
-              "&:hover": { backgroundColor: "#bf4e1f" },
-            }}
-            onClick={() => handleOpenDialog("hod")}
-          >
-            Add HOD
-          </Button>
+{/* HODs Table */}
+<Typography variant="h5" sx={{ mb: 2, color: "#d05c24" }}>
+  List of HODs
+</Typography>
+<TableContainer component={Paper} sx={{ mb: 4 }}>
+  <Table>
+    <TableHead sx={{ backgroundColor: "#D97C4F" }}>
+      <TableRow>
+        <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+          Name
+        </TableCell>
+        <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+          Email
+        </TableCell>
+        <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+          Actions
+        </TableCell>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {hods.map((hod) => (
+        <TableRow key={hod.id}>
+          <TableCell>{hod.name}</TableCell>
+          <TableCell>{hod.email}</TableCell>
+          <TableCell>
+            <Button
+              variant="contained"
+              color="error"
+              size="small"
+              onClick={() => handleDelete("hod", hod.id)}
+            >
+              Delete
+            </Button>
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+</TableContainer>
+<Button
+  variant="contained"
+  sx={{
+    mb: 4,
+    backgroundColor: "#d05c24",
+    color: "white",
+    "&:hover": { backgroundColor: "#bf4e1f" },
+  }}
+  onClick={() => handleOpenDialog("hod")}
+>
+  Add HOD
+</Button>
 
-          {/* FPCs Table */}
-          <Typography variant="h5" sx={{ mb: 2, color: "#d05c24" }}>
-            List of FPCs
-          </Typography>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead sx={{ backgroundColor: "#D97C4F" }}>
-                <TableRow>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                    Name
-                  </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                    Email
-                  </TableCell>
-
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {fpcs.map((fpc) => (
-                  <TableRow key={fpc.id}>
-                    <TableCell>{fpc.name}</TableCell>
-                    <TableCell>{fpc.email}</TableCell>
-                    <TableCell>
-                    <Button
-                      variant="contained"
-                      color="error"
-                      size="small"
-                      onClick={() => handleDelete("hod", fpc.id)}
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Button
-            variant="contained"
-            sx={{
-              mt: 4,
-              backgroundColor: "#d05c24",
-              color: "white",
-              "&:hover": { backgroundColor: "#bf4e1f" },
-            }}
-            onClick={() => handleOpenDialog("fpc")}
-          >
-            Add FPC
-          </Button>
+{/* FPCs Table */}
+<Typography variant="h5" sx={{ mb: 2, color: "#d05c24" }}>
+  List of FPCs
+</Typography>
+<TableContainer component={Paper}>
+  <Table>
+    <TableHead sx={{ backgroundColor: "#D97C4F" }}>
+      <TableRow>
+        <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+          Name
+        </TableCell>
+        <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+          Email
+        </TableCell>
+        <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+          Actions
+        </TableCell>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {fpcs.map((fpc) => (
+        <TableRow key={fpc.id}>
+          <TableCell>{fpc.name}</TableCell>
+          <TableCell>{fpc.email}</TableCell>
+          <TableCell>
+            <Button
+              variant="contained"
+              color="error"
+              size="small"
+              onClick={() => handleDelete("fpc", fpc.id)}
+            >
+              Delete
+            </Button>
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+</TableContainer>
+<Button
+  variant="contained"
+  sx={{
+    mt: 4,
+    backgroundColor: "#d05c24",
+    color: "white",
+    "&:hover": { backgroundColor: "#bf4e1f" },
+  }}
+  onClick={() => handleOpenDialog("fpc")}
+>
+  Add FPC
+</Button>
         </Paper>
 
         {/* Dialog for Adding HOD/FPC */}
@@ -307,54 +358,63 @@ function AdminPortal() {
             ADD {dialogType === "hod" ? "HOD" : "FPC"}
           </DialogTitle>
           <DialogContent>
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            )}
-            <TextField
-              label="Name"
-              fullWidth
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              sx={{ mb: 2, mt: 3 }}
-            />
-            <TextField
-              label="Email"
-              fullWidth
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Password"
-              type="password"
-              fullWidth
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              select
-              label="Department"
-              fullWidth
-              value={formData.department}
-              onChange={(e) =>
-                setFormData({ ...formData, department: e.target.value })
-              }
-              sx={{ mb: 2 }}
-            >
-              <MenuItem value="CSE">CSE</MenuItem>
-              <MenuItem value="IT">IT</MenuItem>
-              {/* Add other departments as needed */}
-            </TextField>
-          </DialogContent>
+  {error && (
+    <Alert severity="error" sx={{ mb: 2 }}>
+      {error}
+    </Alert>
+  )}
+  <TextField
+    label="Name"
+    fullWidth
+    value={formData.name}
+    onChange={(e) =>
+      setFormData({ ...formData, name: e.target.value })
+    }
+    sx={{ mb: 2, mt: 3 }}
+  />
+  <TextField
+    label="Email"
+    fullWidth
+    value={formData.email}
+    onChange={(e) =>
+      setFormData({ ...formData, email: e.target.value })
+    }
+    sx={{ mb: 2 }}
+  />
+  <TextField
+    label="Password"
+    type="password"
+    fullWidth
+    value={formData.password}
+    onChange={(e) =>
+      setFormData({ ...formData, password: e.target.value })
+    }
+    sx={{ mb: 2 }}
+  />
+  <TextField
+    label="App Password"
+    type="password"
+    fullWidth
+    value={formData.app_password}
+    onChange={(e) =>
+      setFormData({ ...formData, app_password: e.target.value })
+    }
+    sx={{ mb: 2 }}
+  />
+  <TextField
+    select
+    label="Department"
+    fullWidth
+    value={formData.department}
+    onChange={(e) =>
+      setFormData({ ...formData, department: e.target.value })
+    }
+    sx={{ mb: 2 }}
+  >
+    <MenuItem value="CSE">CSE</MenuItem>
+    <MenuItem value="IT">IT</MenuItem>
+  </TextField>
+</DialogContent>
           <DialogActions>
             <Button
               onClick={handleSubmit}
