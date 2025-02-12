@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { getIdFromToken } from "../utils/authUtils";
 
 import {
@@ -40,16 +40,15 @@ function FpcPortal() {
     try {
       setLoading(true);
       const response = await getSubmissions();
-      console.log("Fetched Response:", response); // Log entire response for debugging
+      console.log("Fetched Response:", response);
       
-      // Since getSubmissions now returns the entire data object
-      // and we've already validated the submissions array in getSubmissions
-      setApplications(response.submissions);
-      setError(""); // Clear any previous errors
+      // Since response is directly an array, we don't need to access .submissions
+      setApplications(Array.isArray(response) ? response : []);
+      setError("");
     } catch (error) {
       setError(error.message || "Failed to fetch submissions");
       console.error("Error fetching submissions:", error);
-      setApplications([]); // Clear applications on error
+      setApplications([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -58,13 +57,11 @@ function FpcPortal() {
   const handleActionClick = (app, actionType) => {
     setSelectedApp(app);
     setAction(actionType);
-    if (actionType === "Approve") {
-      setRemarks(""); // No comment is required for approve action
-    }
-    setOpenDialog(true);
-    setRemarks(""); // Reset remarks field
+    setRemarks("");
     setError("");
+    setOpenDialog(true);
   };
+
   const getStatusTextColor = (status) => {
     switch (status) {
       case "Approved":
@@ -74,18 +71,17 @@ function FpcPortal() {
       case "Rework":
         return "black";
       default:
-        return "#000000"; // Black (Default)
+        return "#000000";
     }
   };
 
   const validatePdf = (pdfPath) => {
-    // Validate file size and check for spaces in filename
     if (!pdfPath) return "File is required";
-    const fileName = pdfPath.split("/").pop(); // Extract file name from path
+    const fileName = pdfPath.split("/").pop();
     if (fileName.includes(" ")) {
       return "File name should not contain spaces.";
     }
-    return ""; // Return empty if validation passes
+    return "";
   };
 
   const handleSubmit = async () => {
@@ -104,12 +100,12 @@ function FpcPortal() {
       const reviewData = {
         submission_id: selectedApp.id,
         fpc_id: fpcId,
-        status: action, // Must be "Approved", "Rejected", or "Rework"
+        status: action,
         comments: remarks.trim()
       };
 
       await createFpcReview(reviewData);
-      await fetchSubmissions(); // Refresh the list
+      await fetchSubmissions();
       
       setOpenDialog(false);
       setRemarks("");
@@ -138,13 +134,11 @@ function FpcPortal() {
       sx={{
         minHeight: "100vh",
         width: "100%",
-
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-
-        backgroundColor: "#f8f9fa", // Full gray background
+        backgroundColor: "#f8f9fa",
         padding: 2,
         overflowX: "hidden",
       }}
@@ -157,8 +151,6 @@ function FpcPortal() {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-
-          // minHeight: "100vh",
           backgroundColor: "#f8f9fa",
         }}
       >
@@ -167,14 +159,13 @@ function FpcPortal() {
           sx={{
             p: 5,
             borderRadius: 2,
-
             width: "95%",
             maxWidth: 1300,
-            margin: "0 auto", // Center align
-            backgroundColor: "#fff", // Keep the Paper white
+            margin: "0 auto",
+            backgroundColor: "#fff",
             display: "flex",
             flexDirection: "column",
-            alignItems: "center", // Center Paper content
+            alignItems: "center",
           }}
         >
           <Typography
@@ -186,14 +177,14 @@ function FpcPortal() {
               fontWeight: "bold",
               textAlign: "center",
               color: "#d05c24",
-              fontSize: "2.1rem", // Increase font size
+              fontSize: "2.1rem",
             }}
           >
             FPC Portal - Student Applications
           </Typography>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
+            <Alert severity="error" sx={{ mb: 3, width: "100%" }}>
               {error}
             </Alert>
           )}
@@ -202,203 +193,78 @@ function FpcPortal() {
             <Table>
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#D97C4F" }}>
-                  <TableCell
-                    sx={{
-                      textAlign: "center",
-                      color: "white",
-                      fontWeight: "bold",
-                      fontSize: "1rem",
-                    }}
-                  >
+                  <TableCell sx={{ textAlign: "center", color: "white", fontWeight: "bold", fontSize: "1rem" }}>
                     Reg. No.
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      textAlign: "center",
-                      color: "white",
-                      fontWeight: "bold",
-                      fontSize: "1rem",
-                    }}
-                  >
+                  <TableCell sx={{ textAlign: "center", color: "white", fontWeight: "bold", fontSize: "1rem" }}>
                     Student Name
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      textAlign: "center",
-                      color: "white",
-                      fontWeight: "bold",
-                      fontSize: "1rem",
-                    }}
-                  >
+                  <TableCell sx={{ textAlign: "center", color: "white", fontWeight: "bold", fontSize: "1rem" }}>
                     Department
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      textAlign: "center",
-                      color: "white",
-                      fontWeight: "bold",
-                      fontSize: "1rem",
-                    }}
-                  >
+                  <TableCell sx={{ textAlign: "center", color: "white", fontWeight: "bold", fontSize: "1rem" }}>
                     Company
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      textAlign: "center",
-                      color: "white",
-                      fontWeight: "bold",
-                      fontSize: "1rem",
-                    }}
-                  >
+                  <TableCell sx={{ textAlign: "center", color: "white", fontWeight: "bold", fontSize: "1rem" }}>
                     Offer Type
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      textAlign: "center",
-                      color: "white",
-                      fontWeight: "bold",
-                      fontSize: "1rem",
-                    }}
-                  >
+                  <TableCell sx={{ textAlign: "center", color: "white", fontWeight: "bold", fontSize: "1rem" }}>
                     Stipend
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      textAlign: "center",
-                      color: "white",
-                      fontWeight: "bold",
-                      fontSize: "1rem",
-                    }}
-                  >
+                  <TableCell sx={{ textAlign: "center", color: "white", fontWeight: "bold", fontSize: "1rem" }}>
                     Internship Type
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      textAlign: "center",
-                      color: "white",
-                      fontWeight: "bold",
-                      fontSize: "1rem",
-                    }}
-                  >
+                  <TableCell sx={{ textAlign: "center", color: "white", fontWeight: "bold", fontSize: "1rem" }}>
                     PPO Package (LPA)
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      textAlign: "center",
-                      color: "white",
-                      fontWeight: "bold",
-                      fontSize: "1rem",
-                    }}
-                  >
+                  <TableCell sx={{ textAlign: "center", color: "white", fontWeight: "bold", fontSize: "1rem" }}>
                     Offer Letter
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      textAlign: "center",
-                      color: "white",
-                      fontWeight: "bold",
-                      fontSize: "1rem",
-                    }}
-                  >
+                  <TableCell sx={{ textAlign: "center", color: "white", fontWeight: "bold", fontSize: "1rem" }}>
                     Mail Copy
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      textAlign: "center",
-                      color: "white",
-                      fontWeight: "bold",
-                      fontSize: "1rem",
-                    }}
-                  >
+                  <TableCell sx={{ textAlign: "center", color: "white", fontWeight: "bold", fontSize: "1rem" }}>
                     Actions
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      textAlign: "center",
-                      color: "white",
-                      fontWeight: "bold",
-                      fontSize: "1rem",
-                    }}
-                  >
+                  <TableCell sx={{ textAlign: "center", color: "white", fontWeight: "bold", fontSize: "1rem" }}>
                     Status
                   </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {applications.length === 0 ? (
+                {!applications || applications.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} align="center">
+                    <TableCell colSpan={12} align="center">
                       No applications found
                     </TableCell>
                   </TableRow>
                 ) : (
                   applications.map((app) => {
-                    const offerLetterError = validatePdf(app.offer_letter_path); // Validation for offer letter
+                    const offerLetterError = validatePdf(app.offer_letter_path);
                     const mailCopyError = validatePdf(app.mail_copy_path);
                     return (
                       <TableRow
                         key={app.id}
                         sx={{
-                          backgroundColor:
-                            app.status === "Approved"
-                              ? "#BDE7BD"
-                              : app.status === "Rejected"
-                              ? "#FF8E85"
-                              : "inherit",
+                          backgroundColor: app.status === "Approved" ? "#BDE7BD" :
+                                         app.status === "Rejected" ? "#FF8E85" :
+                                         "inherit",
                         }}
                       >
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          {app.registration_number}
-                        </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          {app.name}
-                        </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          {app.department}
-                        </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          {app.company_name}
-                        </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          {app.offer_type}
-                        </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          ₹{app.stipend_amount}
-                        </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          {app.offer_type_detail}
-                        </TableCell>{" "}
-                        {/* Add Internship Type column */}
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          {app.package_ppo ? app.package_ppo : "-"}
-                        </TableCell>{" "}
-                        {/* Add PPO Package column */}
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
+                        <TableCell sx={{ textAlign: "center", fontSize: "1rem" }}>{app.registration_number}</TableCell>
+                        <TableCell sx={{ textAlign: "center", fontSize: "1rem" }}>{app.name}</TableCell>
+                        <TableCell sx={{ textAlign: "center", fontSize: "1rem" }}>{app.department}</TableCell>
+                        <TableCell sx={{ textAlign: "center", fontSize: "1rem" }}>{app.company_name}</TableCell>
+                        <TableCell sx={{ textAlign: "center", fontSize: "1rem" }}>{app.offer_type}</TableCell>
+                        <TableCell sx={{ textAlign: "center", fontSize: "1rem" }}>₹{app.stipend_amount}</TableCell>
+                        <TableCell sx={{ textAlign: "center", fontSize: "1rem" }}>{app.offer_type_detail}</TableCell>
+                        <TableCell sx={{ textAlign: "center", fontSize: "1rem" }}>{app.package_ppo || "-"}</TableCell>
+                        <TableCell sx={{ textAlign: "center", fontSize: "1rem" }}>
                           {app.offer_letter_path ? (
                             offerLetterError ? (
                               <Alert severity="error">{offerLetterError}</Alert>
                             ) : (
-                              
                               <a href={getFileUrl(app.offer_letter_path)} target="_blank" rel="noopener noreferrer">
-                              
                                 View Offer Letter
                               </a>
                             )
@@ -406,35 +272,27 @@ function FpcPortal() {
                             "-"
                           )}
                         </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          {mailCopyError ? (
-                            <Alert severity="error">{mailCopyError}</Alert>
+                        <TableCell sx={{ textAlign: "center", fontSize: "1rem" }}>
+                          {app.mail_copy_path ? (
+                            mailCopyError ? (
+                              <Alert severity="error">{mailCopyError}</Alert>
+                            ) : (
+                              <a href={getFileUrl(app.mail_copy_path)} target="_blank" rel="noopener noreferrer">
+                                View Mail Copy
+                              </a>
+                            )
                           ) : (
-                            
-                            <a href={getFileUrl(app.mail_copy_path)} target="_blank" rel="noopener noreferrer">
-                            
-                              View Mail Copy
-                            </a>
+                            "-"
                           )}
                         </TableCell>
                         <TableCell>
-                          {app.status === "Pending" ? (
-                            <Box
-                              sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: 1,
-                              }}
-                            >
+                          {app.status === "Pending" && (
+                            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                               <Button
                                 variant="contained"
                                 color="success"
                                 size="small"
-                                onClick={() =>
-                                  handleActionClick(app, "Approved")
-                                }
+                                onClick={() => handleActionClick(app, "Approved")}
                               >
                                 Approve
                               </Button>
@@ -442,25 +300,18 @@ function FpcPortal() {
                                 variant="contained"
                                 color="error"
                                 size="small"
-                                onClick={() =>
-                                  handleActionClick(app, "Rejected")
-                                }
+                                onClick={() => handleActionClick(app, "Rejected")}
                               >
                                 Reject
                               </Button>
                             </Box>
-                          ) : (
-                            <Typography
-                              sx={{
-                                fontWeight: "bold",
-                                color: getStatusTextColor(app.status),
-                              }}
-                            >
-                              {app.status}
-                            </Typography>
                           )}
                         </TableCell>
-                        <TableCell>{app.status}</TableCell>
+                        <TableCell sx={{ textAlign: "center", fontSize: "1rem" }}>
+                          <Typography sx={{ fontWeight: "bold", color: getStatusTextColor(app.status) }}>
+                            {app.status}
+                          </Typography>
+                        </TableCell>
                       </TableRow>
                     );
                   })
@@ -518,19 +369,12 @@ function FpcPortal() {
               p: 2,
               backgroundColor: "#f8f9fa",
               borderTop: "1px solid #ddd",
-              fontSize: "1rem",
             }}
           >
             <Button
               onClick={handleSubmit}
               variant="contained"
-              color={
-                action === "Approve"
-                  ? "success"
-                  : action === "Reject"
-                  ? "error"
-                  : "warning"
-              }
+              color={action === "Approve" ? "success" : "error"}
               sx={{ fontSize: "1rem" }}
             >
               Confirm {action}
