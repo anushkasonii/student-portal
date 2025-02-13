@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { deleteHod, deleteFpc } from "../services/api";
 import { MenuItem } from "@mui/material";
+import { Eye, EyeOff } from "lucide-react";
+
 import {
+  IconButton,
   Container,
   Paper,
   Typography,
@@ -15,6 +18,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  InputAdornment,
   DialogActions,
   TextField,
   Box,
@@ -42,6 +46,9 @@ function AdminPortal() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+const [showAppPassword, setShowAppPassword] = useState(false);
+
   const [dialogType, setDialogType] = useState("");
   const [formData, setFormData] = useState({
     name: "",
@@ -96,14 +103,24 @@ function AdminPortal() {
     Logger.info("Opening dialog", { type });
     setDialogType(type);
     setOpenDialog(true);
-    setFormData({ name: "", email: "", password: "", app_password: "", department: "" });
+    // Set the exact payload values as required
+    // setFormData({
+    //   name: "Hod MUJ",
+    //   email: "hod.csemuj@gmail.com",
+    //   password: "hodcseMUJ123",
+    //   app_password: "itdkwyqxxlkzeexj",
+    //   department: "CSE"
+    // });
   };
+  
 
   const handleCloseDialog = () => {
     Logger.info("Closing dialog");
     setOpenDialog(false);
     setDialogType("");
     setFormData({ name: "", email: "", password: "", app_password: "", department: "" });
+    setShowPassword(false);
+    setShowAppPassword(false);
   };
 
   const handleDelete = async (type, id) => {
@@ -135,25 +152,44 @@ function AdminPortal() {
     return isValid;
   };
 
+  const validateFormData = () => {
+    if (!formData.name?.trim()) {
+      setError("Name is required");
+      return false;
+    }
+    if (!formData.email?.trim()) {
+      setError("Email is required");
+      return false;
+    }
+    if (!validateEmail(formData.email)) {
+      setError("Please enter a valid email address");
+      return false;
+    }
+    if (!formData.password) {
+      setError("Password is required");
+      return false;
+    }
+    if (!formData.app_password) {
+      setError("App Password is required");
+      return false;
+    }
+    if (!formData.department) {
+      setError("Department is required");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async () => {
     Logger.info("Processing form submission", { dialogType });
     try {
-      // Validation checks
-      if (!formData.name || !formData.email || !formData.password || !formData.app_password || !formData.department) {
-        Logger.warn("Incomplete form data", { formData: { ...formData, password: '[REDACTED]', app_password: '[REDACTED]' } });
-        setError("Please fill all fields");
+      if (!validateFormData()) {
         return;
       }
-  
-      if (!validateEmail(formData.email)) {
-        Logger.warn("Invalid email format", { email: formData.email });
-        setError("Please enter a valid email address");
-        return;
-      }
-  
+
       setLoading(true);
       
-      // Construct payload according to backend requirements
+      // Construct payload exactly as required
       const payload = {
         email: formData.email,
         name: formData.name,
@@ -164,7 +200,11 @@ function AdminPortal() {
   
       Logger.info("Submitting data", { 
         type: dialogType, 
-        payload: { ...payload, password: '[REDACTED]', app_password: '[REDACTED]' } 
+        payload: { 
+          ...payload,
+          password: '[REDACTED]',
+          app_password: '[REDACTED]'
+        } 
       });
   
       if (dialogType === "hod") {
@@ -241,109 +281,109 @@ function AdminPortal() {
             </Alert>
           )}
 
-{/* HODs Table */}
-<Typography variant="h5" sx={{ mb: 2, color: "#d05c24" }}>
-  List of HODs
-</Typography>
-<TableContainer component={Paper} sx={{ mb: 4 }}>
-  <Table>
-    <TableHead sx={{ backgroundColor: "#D97C4F" }}>
-      <TableRow>
-        <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-          Name
-        </TableCell>
-        <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-          Email
-        </TableCell>
-        <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-          Actions
-        </TableCell>
-      </TableRow>
-    </TableHead>
-    <TableBody>
-      {hods.map((hod) => (
-        <TableRow key={hod.id}>
-          <TableCell>{hod.name}</TableCell>
-          <TableCell>{hod.email}</TableCell>
-          <TableCell>
-            <Button
-              variant="contained"
-              color="error"
-              size="small"
-              onClick={() => handleDelete("hod", hod.id)}
-            >
-              Delete
-            </Button>
-          </TableCell>
-        </TableRow>
-      ))}
-    </TableBody>
-  </Table>
-</TableContainer>
-<Button
-  variant="contained"
-  sx={{
-    mb: 4,
-    backgroundColor: "#d05c24",
-    color: "white",
-    "&:hover": { backgroundColor: "#bf4e1f" },
-  }}
-  onClick={() => handleOpenDialog("hod")}
->
-  Add HOD
-</Button>
+          {/* HODs Table */}
+          <Typography variant="h5" sx={{ mb: 2, color: "#d05c24" }}>
+            List of HODs
+          </Typography>
+          <TableContainer component={Paper} sx={{ mb: 4 }}>
+            <Table>
+              <TableHead sx={{ backgroundColor: "#D97C4F" }}>
+                <TableRow>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Name
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Email
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Actions
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {hods.map((hod) => (
+                  <TableRow key={hod.id}>
+                    <TableCell>{hod.name}</TableCell>
+                    <TableCell>{hod.email}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        size="small"
+                        onClick={() => handleDelete("hod", hod.id)}
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Button
+            variant="contained"
+            sx={{
+              mb: 4,
+              backgroundColor: "#d05c24",
+              color: "white",
+              "&:hover": { backgroundColor: "#bf4e1f" },
+            }}
+            onClick={() => handleOpenDialog("hod")}
+          >
+            Add HOD
+          </Button>
 
-{/* FPCs Table */}
-<Typography variant="h5" sx={{ mb: 2, color: "#d05c24" }}>
-  List of FPCs
-</Typography>
-<TableContainer component={Paper}>
-  <Table>
-    <TableHead sx={{ backgroundColor: "#D97C4F" }}>
-      <TableRow>
-        <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-          Name
-        </TableCell>
-        <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-          Email
-        </TableCell>
-        <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-          Actions
-        </TableCell>
-      </TableRow>
-    </TableHead>
-    <TableBody>
-      {fpcs.map((fpc) => (
-        <TableRow key={fpc.id}>
-          <TableCell>{fpc.name}</TableCell>
-          <TableCell>{fpc.email}</TableCell>
-          <TableCell>
-            <Button
-              variant="contained"
-              color="error"
-              size="small"
-              onClick={() => handleDelete("fpc", fpc.id)}
-            >
-              Delete
-            </Button>
-          </TableCell>
-        </TableRow>
-      ))}
-    </TableBody>
-  </Table>
-</TableContainer>
-<Button
-  variant="contained"
-  sx={{
-    mt: 4,
-    backgroundColor: "#d05c24",
-    color: "white",
-    "&:hover": { backgroundColor: "#bf4e1f" },
-  }}
-  onClick={() => handleOpenDialog("fpc")}
->
-  Add FPC
-</Button>
+          {/* FPCs Table */}
+          <Typography variant="h5" sx={{ mb: 2, color: "#d05c24" }}>
+            List of FPCs
+          </Typography>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead sx={{ backgroundColor: "#D97C4F" }}>
+                <TableRow>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Name
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Email
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Actions
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {fpcs.map((fpc) => (
+                  <TableRow key={fpc.id}>
+                    <TableCell>{fpc.name}</TableCell>
+                    <TableCell>{fpc.email}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        size="small"
+                        onClick={() => handleDelete("fpc", fpc.id)}
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Button
+            variant="contained"
+            sx={{
+              mt: 4,
+              backgroundColor: "#d05c24",
+              color: "white",
+              "&:hover": { backgroundColor: "#bf4e1f" },
+            }}
+            onClick={() => handleOpenDialog("fpc")}
+          >
+            Add FPC
+          </Button>
         </Paper>
 
         {/* Dialog for Adding HOD/FPC */}
@@ -358,63 +398,91 @@ function AdminPortal() {
             ADD {dialogType === "hod" ? "HOD" : "FPC"}
           </DialogTitle>
           <DialogContent>
-  {error && (
-    <Alert severity="error" sx={{ mb: 2 }}>
-      {error}
-    </Alert>
-  )}
-  <TextField
-    label="Name"
-    fullWidth
-    value={formData.name}
-    onChange={(e) =>
-      setFormData({ ...formData, name: e.target.value })
-    }
-    sx={{ mb: 2, mt: 3 }}
-  />
-  <TextField
-    label="Email"
-    fullWidth
-    value={formData.email}
-    onChange={(e) =>
-      setFormData({ ...formData, email: e.target.value })
-    }
-    sx={{ mb: 2 }}
-  />
-  <TextField
-    label="Password"
-    type="password"
-    fullWidth
-    value={formData.password}
-    onChange={(e) =>
-      setFormData({ ...formData, password: e.target.value })
-    }
-    sx={{ mb: 2 }}
-  />
-  <TextField
-    label="App Password"
-    type="password"
-    fullWidth
-    value={formData.app_password}
-    onChange={(e) =>
-      setFormData({ ...formData, app_password: e.target.value })
-    }
-    sx={{ mb: 2 }}
-  />
-  <TextField
-    select
-    label="Department"
-    fullWidth
-    value={formData.department}
-    onChange={(e) =>
-      setFormData({ ...formData, department: e.target.value })
-    }
-    sx={{ mb: 2 }}
-  >
-    <MenuItem value="CSE">CSE</MenuItem>
-    <MenuItem value="IT">IT</MenuItem>
-  </TextField>
-</DialogContent>
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+            <TextField
+              label="Name"
+              fullWidth
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              sx={{ mb: 2, mt: 3 }}
+            />
+            <TextField
+              label="Email"
+              fullWidth
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+              sx={{ mb: 2 }}
+            />
+            {/* <TextField
+              label="Password"
+              type="password"
+              fullWidth
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              sx={{ mb: 2 }}
+            /> */}
+
+<TextField
+              label="Password"
+              type={showPassword ? "text" : "password"}
+              fullWidth
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                      size="large"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              label="App Password"
+              // type="password"
+              fullWidth
+              value={formData.app_password}
+              onChange={(e) =>
+                setFormData({ ...formData, app_password: e.target.value })
+              }
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              select
+              label="Department"
+              fullWidth
+              value={formData.department}
+              onChange={(e) =>
+                setFormData({ ...formData, department: e.target.value })
+              }
+              sx={{ mb: 2 }}
+            >
+              <MenuItem value="CSE">CSE</MenuItem>
+              <MenuItem value="IT">IT</MenuItem>
+            </TextField>
+          </DialogContent>
           <DialogActions>
             <Button
               onClick={handleSubmit}
