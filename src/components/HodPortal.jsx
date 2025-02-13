@@ -62,9 +62,9 @@ function HodPortal() {
   const getStatusColor = (status) => {
     switch (status) {
       case "Approved":
-        return "#e8f5e9";
+        return "#BDE7BD";
       case "Rejected":
-        return "#ffebee";
+        return "#FF8E85";
       default:
         return "inherit";
     }
@@ -83,11 +83,11 @@ function HodPortal() {
     }
 
     try {
-      const response = await createHodReview({
+      await createHodReview({
         submission_id: selectedApp.id,
         hod_id: hodId,
-        action: action,
-        remarks: remarks.trim()
+        status: action,
+        comments: remarks.trim()
       });
 
       await fetchApprovedSubmissions();
@@ -145,7 +145,14 @@ function HodPortal() {
               </TableHead>
               <TableBody>
                 {applications.map((app) => (
-                  <TableRow key={app.id}>
+                  <TableRow 
+                    key={app.id}
+                    sx={{ 
+                      backgroundColor: app.status === "Approved" ? "#BDE7BD" :
+                                     app.status === "Rejected" ? "#FF8E85" :
+                                     "inherit"
+                    }}
+                  >
                     <TableCell>{app.registration_number}</TableCell>
                     <TableCell>{app.name}</TableCell>
                     <TableCell>{app.department}</TableCell>
@@ -157,32 +164,33 @@ function HodPortal() {
                     <TableCell>{new Date(app.internship_start_date).toLocaleDateString()}</TableCell>
                     <TableCell>{new Date(app.internship_end_date).toLocaleDateString()}</TableCell>
                     <TableCell sx={{ 
-                      backgroundColor: app.fpc_status === "Approved" ? "#e8f5e9" : 
-                                    app.fpc_status === "Rejected" ? "#ffebee" : "inherit"
+                      backgroundColor: app.fpc_status === "Approved" ? "#BDE7BD" : 
+                                    app.fpc_status === "Rejected" ? "#FF8E85" : 
+                                    "inherit"
                     }}>
                       {app.fpc_status}
                     </TableCell>
                     <TableCell>
-                      <Box sx={{ display: "flex", gap: 1 }}>
-                        <Button
-                          variant="contained"
-                          color="success"
-                          size="small"
-                          onClick={() => handleAction(app, "Approved")}
-                          disabled={app.status === "NOC Ready"}
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          variant="contained"
-                          color="error"
-                          size="small"
-                          onClick={() => handleAction(app, "Rejected")}
-                          disabled={app.status === "NOC Ready"}
-                        >
-                          Reject
-                        </Button>
-                      </Box>
+                      {app.status !== "Approved" && app.status !== "Rejected" && (
+                        <Box sx={{ display: "flex", gap: 1 }}>
+                          <Button
+                            variant="contained"
+                            color="success"
+                            size="small"
+                            onClick={() => handleAction(app, "Approved")}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            variant="contained"
+                            color="error"
+                            size="small"
+                            onClick={() => handleAction(app, "Rejected")}
+                          >
+                            Reject
+                          </Button>
+                        </Box>
+                      )}
                     </TableCell>
                     <TableCell>
                       {app.noc_path ? (
@@ -192,7 +200,7 @@ function HodPortal() {
                       ) : app.status === "NOC Ready" ? (
                         "NOC Ready"
                       ) : (
-                        "-"
+                        app.status || "Pending"
                       )}
                     </TableCell>
                   </TableRow>
@@ -233,7 +241,18 @@ function HodPortal() {
             >
               Confirm {action}
             </Button>
-            <Button onClick={() => setOpenDialog(false)} variant="outlined">
+            <Button 
+              onClick={() => setOpenDialog(false)} 
+              variant="outlined"
+              sx={{
+                color: "#d05c24",
+                borderColor: "#d05c24",
+                '&:hover': {
+                  borderColor: "#d05c24",
+                  backgroundColor: "rgba(208, 92, 36, 0.04)"
+                }
+              }}
+            >
               Cancel
             </Button>
           </DialogActions>
