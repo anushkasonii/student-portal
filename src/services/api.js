@@ -1,10 +1,10 @@
 import axios from 'axios';
-import { getIdFromToken } from "../utils/authUtils"; // Ensure the path is correct
+import { getIdFromToken } from "../utils/authUtils"; 
 
 
-const SUBMISSION_SERVICE_URL = 'https://temp.6513.in';
-const MAIN_SERVICE_URL = 'https://temp.6513.in';
-const FILES_BASE_URL = 'https://temp.6513.in/files';
+const SUBMISSION_SERVICE_URL = 'http://localhost:8002';
+const MAIN_SERVICE_URL = 'http://localhost:8002';
+const FILES_BASE_URL = 'http://localhost:8002/files';
 
 
 // Create separate instances for different services
@@ -219,6 +219,7 @@ export const createHod = async (hodData) => {
       name: hodData.name,
       email: hodData.email,
       password: hodData.password,
+      app_password : hodData.app_password,
       department: hodData.department
     }, {
       headers: {
