@@ -270,14 +270,19 @@ function StudentForm() {
   const handleVerifyOtp = async () => {
     try {
       setSubmissionStatus("Verifying OTP...");
-      await verifyEmailOtp({ email: formik.values.email, otp });
-
+      const data = {
+        email: formik.values.email,
+        otp: otp
+      };
+      await verifyEmailOtp(data);
+  
       setEmailVerified(true);
       setSubmissionStatus("Email verified successfully!");
     } catch (error) {
+      console.error('Verification error:', error);
       setSubmissionStatus("Invalid OTP. Please try again.");
     }
-  };
+  };  
 
   return (
     <Box
