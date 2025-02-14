@@ -59,17 +59,6 @@ function HodPortal() {
     setError("");
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Approved":
-        return "#BDE7BD";
-      case "Rejected":
-        return "#FF8E85";
-      default:
-        return "inherit";
-    }
-  };
-
   const handleSubmit = async () => {
     if (action === "Rejected" && !remarks.trim()) {
       setError("Comments are required for rejection");
@@ -90,12 +79,22 @@ function HodPortal() {
         comments: remarks.trim()
       });
 
-      await fetchApprovedSubmissions();
+      // Update local state first for immediate feedback
+      setApplications(prevApps => 
+        prevApps.map(app => 
+          app.id === selectedApp.id 
+            ? { ...app, status: action }
+            : app
+        )
+      );
       
       setOpenDialog(false);
       setRemarks("");
       setSelectedApp(null);
       setError("");
+
+      // Then fetch fresh data
+      await fetchApprovedSubmissions();
     } catch (error) {
       setError("Failed to submit review");
       console.error("Error submitting review:", error);
@@ -150,6 +149,7 @@ function HodPortal() {
                     sx={{ 
                       backgroundColor: app.status === "Approved" ? "#BDE7BD" :
                                      app.status === "Rejected" ? "#FF8E85" :
+                                     app.status === "NOC ready" ? "#F7D2C4" :
                                      "inherit"
                     }}
                   >
@@ -164,11 +164,12 @@ function HodPortal() {
                     <TableCell>{new Date(app.internship_start_date).toLocaleDateString()}</TableCell>
                     <TableCell>{new Date(app.internship_end_date).toLocaleDateString()}</TableCell>
                     <TableCell sx={{ 
-                      backgroundColor: app.fpc_status === "Approved" ? "#BDE7BD" : 
-                                    app.fpc_status === "Rejected" ? "#FF8E85" : 
+                      backgroundColor: app.status === "Approved" ? "#BDE7BD" : 
+                                    app.status === "Rejected" ? "#FF8E85" : 
+                                    app.status === "NOC ready" ? "#F7D2C4" :
                                     "inherit"
                     }}>
-                      {app.fpc_status}
+                      {app.status || "Pending"}
                     </TableCell>
                     <TableCell>
                       {app.status !== "Approved" && app.status !== "Rejected" && (
@@ -178,6 +179,7 @@ function HodPortal() {
                             color="success"
                             size="small"
                             onClick={() => handleAction(app, "Approved")}
+                            disabled={!app.status || app.status === "Pending" || app.status === "NOC ready"}
                           >
                             Approve
                           </Button>
@@ -186,6 +188,7 @@ function HodPortal() {
                             color="error"
                             size="small"
                             onClick={() => handleAction(app, "Rejected")}
+                            disabled={!app.status || app.status === "Pending" || app.status === "NOC ready"}
                           >
                             Reject
                           </Button>
@@ -210,7 +213,12 @@ function HodPortal() {
           </TableContainer>
         </Paper>
 
-        <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+        <Dialog 
+          open={openDialog} 
+          onClose={() => setOpenDialog(false)} 
+          maxWidth="sm" 
+          fullWidth
+        >
           <DialogTitle sx={{ backgroundColor: "#d05c24", color: "white", textAlign: "center" }}>
             Review Application
           </DialogTitle>
