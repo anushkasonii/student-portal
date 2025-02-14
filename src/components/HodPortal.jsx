@@ -179,7 +179,7 @@ function HodPortal() {
                             color="success"
                             size="small"
                             onClick={() => handleAction(app, "Approved")}
-                            disabled={!app.status || app.status === "Approved" || app.status === "Rejected" || app.status === "NOC ready"}
+                            disabled={!app.status || app.status === "Pending" || app.status === "Rejected" || app.status === "NOC ready"}
                           >
                             Approve
                           </Button>
@@ -188,7 +188,7 @@ function HodPortal() {
                             color="error"
                             size="small"
                             onClick={() => handleAction(app, "Rejected")}
-                            disabled={!app.status || app.status === "Approved" || app.status === "Rejected" || app.status === "NOC ready"}
+                            disabled={!app.status || app.status === "Pending" || app.status === "Rejected" || app.status === "NOC ready"}
                           >
                             Reject
                           </Button>

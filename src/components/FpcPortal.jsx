@@ -66,9 +66,7 @@ function FpcPortal() {
       case "Approved":
         return "black";
       case "Rejected":
-        return "black";
-      case "Rework":
-        return "black";
+        return "black"; 
       default:
         return "#000000";
     }
@@ -247,6 +245,7 @@ function FpcPortal() {
                         sx={{
                           backgroundColor: app.status === "Approved" ? "#BDE7BD" :
                                          app.status === "Rejected" ? "#FF8E85" :
+                                         app.status === "NOC ready" ? "#F7D2C4" :
                                          "inherit",
                         }}
                       >
