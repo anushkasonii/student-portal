@@ -37,7 +37,7 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build"
   },
-  "proxy": "https://temp.6513.in",
+  "proxy": "http://localhost:8002",
   "eslintConfig": {
     "extends": [
       "react-app",
