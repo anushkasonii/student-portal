@@ -7,44 +7,46 @@ import Login from "./components/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminPortal from "./components/AdminPortal";
 import SuccessPage from "./components/SuccessPage";
+import HomePage from "./components/HomePage";
 
 function App() {
-    console.log("App working...");
+  console.log("App working...");
 
-    return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<StudentForm />} />
-                <Route path="/success" element={<SuccessPage />} />
-                <Route path="/login" element={<Login />} />
-                <Route
-                    path="/fpc"
-                    element={
-                        <ProtectedRoute role="fpc">
-                            <FpcPortal />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/hod"
-                    element={
-                        <ProtectedRoute role="hod">
-                            <HodPortal />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/admin"
-                    element={
-                        <ProtectedRoute role="admin">
-                            <AdminPortal />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route path="*" element={<h1>404 Not Found</h1>} />
-            </Routes>
-        </Router>
-    );
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/student-form" element={<StudentForm />} />
+        <Route path="/success" element={<SuccessPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/fpc"
+          element={
+            <ProtectedRoute role="fpc">
+              <FpcPortal />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hod"
+          element={
+            <ProtectedRoute role="hod">
+              <HodPortal />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminPortal />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<h1>404 Not Found</h1>} />
+      </Routes>
+    </Router>
+  );
 }
 
 export default App;
