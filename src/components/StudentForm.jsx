@@ -115,6 +115,9 @@ function StudentForm() {
     if (file) {
       if (!file.type.includes("pdf")) return "File must be a PDF";
       if (file.size > 5 * 1024 * 1024) return "File size must be less than 5MB";
+
+    const fileName = file.name;
+    if (fileName.includes(" ")) return "File name should not contain spaces"
     }
     return "";
   };

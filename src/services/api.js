@@ -278,12 +278,13 @@ export const deleteFpc = async (id) => {
 export const getFileUrl = (filepath) => {
   const token = localStorage.getItem('token');
   return {
-    url: `${FILES_BASE_URL}/${filepath}`,
+    url: `${FILES_BASE_URL}/${filepath}`, 
     headers: {
-      'Authorization': `Bearer ${token}`
+      'Authorization': `Bearer ${token}` 
     }
   };
 };
+
 
 
 export { submissionApi, mainApi };
