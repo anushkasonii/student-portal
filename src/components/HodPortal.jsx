@@ -138,9 +138,12 @@ function HodPortal() {
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", width: "100%", p: 3, backgroundColor: "#f8f9fa" }}>
-      <Container maxWidth="xl">
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+    <Box sx={{ minHeight: "100vh", width: "100vw", overflowX: "hidden", p: 3, backgroundColor: "#f8f9fa" }}>
+
+      <Container maxWidth={false} sx={{ width: "100%" }}>
+
+      <Paper elevation={3} sx={{ p: 4, borderRadius: 2, width: "100%" }}>
+
           <Typography variant="h4" gutterBottom sx={{ mb: 4, fontWeight: "bold", textAlign: "center", color: "#d05c24" }}>
             HOD Portal - Application Review
           </Typography>
