@@ -56,9 +56,9 @@ function HomePage() {
                 <Typography variant="h5" fontWeight="bold" mt={2}>
                   Student Portal
                 </Typography>
-                <Typography variant="body1" sx={{ opacity: 0.8 }}>
+                {/* <Typography variant="body1" sx={{ opacity: 0.8 }}>
                   Apply for NOC for your internship or job offer.
-                </Typography>
+                </Typography> */}
               </CardContent>
             </Card>
           </Grid>
