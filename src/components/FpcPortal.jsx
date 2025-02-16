@@ -53,6 +53,28 @@ function FpcPortal() {
     }
   };  
 
+// Add this function at the top of your FpcPortal component
+const handleFileView = (fileUrl) => {
+  const { url, headers } = getFileUrl(fileUrl);
+  
+  // Create a hidden form to submit the request with the authorization header
+  const form = document.createElement('form');
+  form.method = 'GET';
+  form.action = url;
+  form.target = '_blank';
+
+  // Add authorization header as a hidden input
+  const authInput = document.createElement('input');
+  authInput.type = 'hidden';
+  authInput.name = 'Authorization';
+  authInput.value = headers.Authorization;
+  form.appendChild(authInput);
+
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
+};
+
   const handleActionClick = (app, actionType) => {
     setSelectedApp(app);
     setAction(actionType);
@@ -262,9 +284,12 @@ function FpcPortal() {
                             offerLetterError ? (
                               <Alert severity="error">{offerLetterError}</Alert>
                             ) : (
-                              <a href={getFileUrl(app.offer_letter_path)} target="_blank" rel="noopener noreferrer">
-                                View Offer Letter
-                              </a>
+                              <Button
+        onClick={() => handleFileView(app.offer_letter_path)}
+        sx={{ textDecoration: 'underline', color: 'primary.main' }}
+      >
+        View Offer Letter
+      </Button>
                             )
                           ) : (
                             "-"
@@ -275,9 +300,12 @@ function FpcPortal() {
                             mailCopyError ? (
                               <Alert severity="error">{mailCopyError}</Alert>
                             ) : (
-                              <a href={getFileUrl(app.mail_copy_path)} target="_blank" rel="noopener noreferrer">
-                                View Mail Copy
-                              </a>
+                              <Button
+        onClick={() => handleFileView(app.mail_copy_path)}
+        sx={{ textDecoration: 'underline', color: 'primary.main' }}
+      >
+        View Mail Copy
+      </Button>
                             )
                           ) : (
                             "-"

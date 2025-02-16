@@ -52,6 +52,28 @@ function HodPortal() {
     }
   };
 
+  // Add this function at the top of your HodPortal component
+const handleFileView = (fileUrl) => {
+  const { url, headers } = getFileUrl(fileUrl);
+  
+  // Create a hidden form to submit the request with the authorization header
+  const form = document.createElement('form');
+  form.method = 'GET';
+  form.action = url;
+  form.target = '_blank';
+
+  // Add authorization header as a hidden input
+  const authInput = document.createElement('input');
+  authInput.type = 'hidden';
+  authInput.name = 'Authorization';
+  authInput.value = headers.Authorization;
+  form.appendChild(authInput);
+
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
+};
+
   const handleAction = async (app, actionType) => {
     setSelectedApp(app);
     setAction(actionType);
@@ -197,9 +219,12 @@ function HodPortal() {
                     </TableCell>
                     <TableCell>
                       {app.noc_path ? (
-                        <a href={getFileUrl(app.noc_path)} target="_blank" rel="noopener noreferrer">
-                          View NOC
-                        </a>
+                         <Button
+                         onClick={() => handleFileView(app.noc_path)}
+                         sx={{ textDecoration: 'underline', color: 'primary.main' }}
+                       >
+                         View NOC
+                       </Button>
                       ) : app.status === "NOC Ready" ? (
                         "NOC Ready"
                       ) : (

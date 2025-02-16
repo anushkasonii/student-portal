@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginAdmin, loginHod, loginFpc } from "../services/api";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, IconButton, InputAdornment } from "@mui/material";
+import { Eye, EyeOff } from "lucide-react";
 import logo from "./muj_header.png";
 
 import {
@@ -17,6 +18,7 @@ import {
 function Login() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -79,6 +81,11 @@ function Login() {
     });
     setError("");
   };
+
+  const handleTogglePassword = () => {
+    setShowPassword(!showPassword);
+  };
+  
 
   return (
     <Box
@@ -161,12 +168,29 @@ function Login() {
                 fullWidth
                 label="Password"
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={formData.password}
                 onChange={handleChange}
                 required
                 variant="outlined"
                 sx={{ backgroundColor: "#fdfdfd" }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={handleTogglePassword}
+                        edge="end"
+                        size="large"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Box>
             <Box sx={{ textAlign: "center" }}>
