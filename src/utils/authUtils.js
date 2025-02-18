@@ -24,3 +24,16 @@ export function getIdFromToken(role) {
         return null;
     }
 }
+
+export const getEmailFromToken = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.email;
+    } catch (error) {
+      console.error('Error getting email from token:', error);
+      return null;
+    }
+  };

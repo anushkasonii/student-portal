@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getIdFromToken } from "../utils/authUtils";
+import { getIdFromToken, getEmailFromToken } from "../utils/authUtils";
 import {
   Container,
   Paper,
@@ -30,9 +30,14 @@ function HodPortal() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [action, setAction] = useState("");
+  const [hodEmail, setHodEmail] = useState("");
 
   useEffect(() => {
     fetchApprovedSubmissions();
+    const email = getEmailFromToken();
+    if (email) {
+      setHodEmail(email);
+    }
   }, []);
 
   const fetchApprovedSubmissions = async () => {
@@ -70,7 +75,6 @@ function HodPortal() {
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
   
-      // Open the file in a new tab
       window.open(blobUrl, "_blank");
     } catch (error) {
       console.error("Error viewing file:", error);
@@ -78,7 +82,14 @@ function HodPortal() {
     }
   };
   
-  
+  const isButtonDisabled = (app) => {
+    // If HOD email is shushilavishnoi@gmail.com, only disable buttons when status is "NOC ready"
+    if (hodEmail === "shusheelavishnoi@gmail.com") {
+      return app.status === "NOC ready";
+    }
+    // For other HODs, maintain original logic
+    return !app.status || app.status === "Pending" || app.status === "Rejected" || app.status === "NOC ready";
+  };
 
   const handleAction = async (app, actionType) => {
     setSelectedApp(app);
@@ -107,7 +118,6 @@ function HodPortal() {
         comments: remarks.trim()
       });
 
-      // Update local state first for immediate feedback
       setApplications(prevApps => 
         prevApps.map(app => 
           app.id === selectedApp.id 
@@ -121,7 +131,6 @@ function HodPortal() {
       setSelectedApp(null);
       setError("");
 
-      // Then fetch fresh data
       await fetchApprovedSubmissions();
     } catch (error) {
       setError("Failed to submit review");
@@ -139,11 +148,8 @@ function HodPortal() {
 
   return (
     <Box sx={{ minHeight: "100vh", width: "100vw", overflowX: "hidden", p: 3, backgroundColor: "#f8f9fa" }}>
-
       <Container maxWidth={false} sx={{ width: "100%" }}>
-
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 2, width: "100%" }}>
-
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 2, width: "100%" }}>
           <Typography variant="h4" gutterBottom sx={{ mb: 4, fontWeight: "bold", textAlign: "center", color: "#d05c24" }}>
             HOD Portal - Application Review
           </Typography>
@@ -203,28 +209,26 @@ function HodPortal() {
                       {app.status || "Pending"}
                     </TableCell>
                     <TableCell>
-                      {/* {app.status !== "Approved" && app.status !== "Rejected" && app.status !== "NOC ready" ? ( */}
-                        <Box sx={{ display: "flex", gap: 1 }}>
-                          <Button
-                            variant="contained"
-                            color="success"
-                            size="small"
-                            onClick={() => handleAction(app, "Approved")}
-                            disabled={!app.status || app.status === "Pending" || app.status === "Rejected" || app.status === "NOC ready"}
-                          >
-                            Approve
-                          </Button>
-                          <Button
-                            variant="contained"
-                            color="error"
-                            size="small"
-                            onClick={() => handleAction(app, "Rejected")}
-                            disabled={!app.status || app.status === "Pending" || app.status === "Rejected" || app.status === "NOC ready"}
-                          >
-                            Reject
-                          </Button>
-                        </Box>
-                      {/* )} */}
+                      <Box sx={{ display: "flex", gap: 1 }}>
+                        <Button
+                          variant="contained"
+                          color="success"
+                          size="small"
+                          onClick={() => handleAction(app, "Approved")}
+                          disabled={isButtonDisabled(app)}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="error"
+                          size="small"
+                          onClick={() => handleAction(app, "Rejected")}
+                          disabled={isButtonDisabled(app)}
+                        >
+                          Reject
+                        </Button>
+                      </Box>
                     </TableCell>
                     <TableCell>
                       {app.noc_path ? (
