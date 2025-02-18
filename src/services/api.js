@@ -2,12 +2,12 @@ import axios from 'axios';
 import { getIdFromToken } from "../utils/authUtils"; 
 
 
-// const SUBMISSION_SERVICE_URL = 'https://temp.6513.in/';
-// const MAIN_SERVICE_URL = 'https://temp.6513.in/';
-// const FILES_BASE_URL = 'https://temp.6513.in/files';
-const SUBMISSION_SERVICE_URL = 'http://localhost:8002/';
-const MAIN_SERVICE_URL = 'http://localhost:8002/';
-const FILES_BASE_URL = 'http://localhost:8002/files';
+const SUBMISSION_SERVICE_URL = 'https://temp.6513.in/';
+const MAIN_SERVICE_URL = 'https://temp.6513.in/';
+const FILES_BASE_URL = 'https://temp.6513.in/files';
+// const SUBMISSION_SERVICE_URL = 'http://localhost:8002/';
+// const MAIN_SERVICE_URL = 'http://localhost:8002/';
+// const FILES_BASE_URL = 'http://localhost:8002/files';
 
 
 
