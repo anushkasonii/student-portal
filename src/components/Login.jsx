@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginAdmin, loginHod, loginFpc } from "../services/api";
 import { CircularProgress, IconButton, InputAdornment } from "@mui/material";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
 import logo from "./muj_header.png";
-
 import {
   Container,
   Paper,
@@ -13,6 +12,7 @@ import {
   Button,
   Box,
   Alert,
+  Grid,
 } from "@mui/material";
 
 function Login() {
@@ -41,7 +41,6 @@ function Login() {
       password: formData.password,
     };
 
-    // List of login functions to try
     const loginFunctions = [
       { fn: loginAdmin, role: "admin", path: "/admin" },
       { fn: loginHod, role: "hod", path: "/hod" },
@@ -62,8 +61,7 @@ function Login() {
         navigate(path);
         break;
       } catch (err) {
-        console.error(`Failed login for ${role}:`, err);
-        // Continue to next login attempt if this one fails
+        console.error(`Failed login for ${role}:`, err);  
         continue;
       }
     }
@@ -85,139 +83,226 @@ function Login() {
   const handleTogglePassword = () => {
     setShowPassword(!showPassword);
   };
-  
 
   return (
     <Box
       sx={{
         minHeight: "100vh",
-        minWidth: "100vw",
+        width: "100vw",
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#f9f9f9",
-        color: "#1e4c90",
-        padding: 2,
+        background: "linear-gradient(45deg, #f5f7fa 0%, #ffffff 100%)",
+        position: "relative",
       }}
     >
       <Box
         sx={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          mt: -20
+          position: "absolute",
+          top: 0,
+          right: 0,
+          width: "60%",
+          height: "100%",
+          background: "linear-gradient(135deg, rgba(208, 92, 36, 0.05) 0%, rgba(241, 125, 74, 0.05) 100%)",
+          clipPath: "polygon(20% 0, 100% 0, 100% 100%, 0% 100%)",
         }}
-      >
-        <img
-          src={logo}
-          alt="Manipal University Jaipur"
-          style={{
-            maxWidth: "500px",
-            height: "auto",
-          }}
-        />
-      </Box>
+      />
 
-      <Container>
-        <Typography
-          variant="h4"
-          align="center"
-          sx={{
-            mb: 8,
-            mt: -3,
-            fontWeight: "bold",
-            color: "#334e90",
-          }}
-        >
-          Welcome to the Login Portal
-        </Typography>
-      </Container>
-
-      <Container maxWidth="sm">
-        <Paper
-          sx={{
-            p: 4,
-            borderRadius: 1.5,
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-            backgroundColor: "#ffffff",
-            border: "1px solid #e0e0e0",
-          }}
-        >
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          )}
-          <form onSubmit={handleSubmit}>
-            <Box sx={{ mb: 3 }}>
-              <TextField
-                fullWidth
-                label="Email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                variant="outlined"
-                sx={{ backgroundColor: "#fdfdfd" }}
-              />
-            </Box>
-            <Box sx={{ mb: 4 }}>
-              <TextField
-                fullWidth
-                label="Password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                value={formData.password}
-                onChange={handleChange}
-                required
-                variant="outlined"
-                sx={{ backgroundColor: "#fdfdfd" }}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={handleTogglePassword}
-                        edge="end"
-                        size="large"
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-5 w-5" />
-                        ) : (
-                          <Eye className="h-5 w-5" />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
+      <Container maxWidth="lg" sx={{ my: "auto" }}>
+        <Grid container spacing={6} alignItems="center">
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: { xs: 4, md: 0 } }}>
+              <img
+                src={logo}
+                alt="Manipal University Jaipur"
+                style={{
+                  width: "300px",
+                  marginBottom: "2rem",
                 }}
               />
-            </Box>
-            <Box sx={{ textAlign: "center" }}>
-              <Button
-                type="submit"
-                variant="contained"
-                size="large"
-                disabled={loading}
+              <Typography
+                variant="h3"
                 sx={{
-                  py: 1.5,
-                  px: 7,
-                  fontWeight: "bold",
-                  color: 'white',
-                  backgroundColor: '#d05c24',
-                  borderRadius: 2,
-                  textTransform: "none",
-                  boxShadow: "0 4px 8px rgba(255, 165, 0, 0.3)",
-                  '&:hover': {
-                    backgroundColor: '#bf4e1f'
-                  }
+                  fontWeight: 700,
+                  color: "#bf4e1f",
+                  mb: 2,
+                  fontSize: { xs: "1rem", md: "2.1rem" },
                 }}
               >
-                {loading ? <CircularProgress size={24} color="inherit" /> : "LOGIN"}
-              </Button>
+                Welcome to the Login Portal!
+              </Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: "#4a5568",
+                  maxWidth: "500px",
+                  lineHeight: 1.8,
+                }}
+              >
+                Please log in to proceed
+              </Typography>
             </Box>
-          </form>
-        </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: { xs: 4, md: 6 },
+                borderRadius: 3,
+                backgroundColor: "#ffffff",
+                boxShadow: "0 10px 40px rgba(0,0,0,0.04)",
+                border: "1px solid rgba(0,0,0,0.05)",
+                position: "relative",
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: "4px",
+                  background: "linear-gradient(90deg, #d05c24, #f17d4a)",
+                },
+              }}
+            >
+              <Typography
+                variant="h5"
+                sx={{
+                  mb: 4,
+                  color: "#2d3748",
+                  textAlign: "center",
+                  fontWeight: 600,
+                }}
+              >
+                Sign in to your account
+              </Typography>
+
+              {error && (
+                <Alert
+                  severity="error"
+                  icon={<AlertCircle size={24} />}
+                  sx={{
+                    mb: 3,
+                    borderRadius: 2,
+                    backgroundColor: "rgba(255, 82, 82, 0.1)",
+                    color: "#ff5252",
+                    border: "1px solid rgba(255, 82, 82, 0.2)",
+                  }}
+                >
+                  {error}
+                </Alert>
+              )}
+
+              <form onSubmit={handleSubmit}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Mail size={20} color="#4a5568" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    mb: 3,
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "#f8f9fa",
+                      borderRadius: 2,
+                      "&:hover": {
+                        backgroundColor: "#ffffff",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+                      },
+                      "&.Mui-focused": {
+                        backgroundColor: "#ffffff",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+                        "& fieldset": {
+                          borderColor: "#d05c24",
+                          borderWidth: "2px",
+                        },
+                      },
+                    },
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Lock size={20} color="#4a5568" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={handleTogglePassword}
+                          edge="end"
+                          sx={{ color: "#4a5568" }}
+                        >
+                          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    mb: 4,
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "#f8f9fa",
+                      borderRadius: 2,
+                      "&:hover": {
+                        backgroundColor: "#ffffff",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+                      },
+                      "&.Mui-focused": {
+                        backgroundColor: "#ffffff",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+                        "& fieldset": {
+                          borderColor: "#d05c24",
+                          borderWidth: "2px",
+                        },
+                      },
+                    },
+                  }}
+                />
+
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  disabled={loading}
+                  sx={{
+                    py: 1.5,
+                    backgroundColor: "#d05c24",
+                    borderRadius: 2,
+                    fontSize: "1.2rem",
+                    fontWeight: 600,
+                    textTransform: "none",
+                    boxShadow: "0 8px 25px rgba(208, 92, 36, 0.15)",
+                    "&:hover": {
+                      backgroundColor: "#bf4e1f",
+                      boxShadow: "0 8px 25px rgba(208, 92, 36, 0.25)",
+                    },
+                  }}
+                >
+                  {loading ? (
+                    <CircularProgress size={24} sx={{ color: "#ffffff" }} />
+                  ) : (
+                    "Login"
+                  )}
+                </Button>
+              </form>
+            </Paper>
+          </Grid>
+        </Grid>
       </Container>
     </Box>
   );

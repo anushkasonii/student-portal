@@ -20,7 +20,11 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { getApprovedSubmissions, createHodReview, getFileUrl } from "../services/api";
+import {
+  getApprovedSubmissions,
+  createHodReview,
+  getFileUrl,
+} from "../services/api";
 
 function HodPortal() {
   const [applications, setApplications] = useState([]);
@@ -59,36 +63,42 @@ function HodPortal() {
 
   const handleFileView = async (fileUrl) => {
     const { url, headers } = getFileUrl(fileUrl);
-  
+
     try {
       const response = await fetch(url, {
         method: "GET",
         headers: {
-          "Authorization": headers.Authorization, 
+          Authorization: headers.Authorization,
         },
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to fetch file. Ensure you are logged in.");
       }
-  
+
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
-  
+      
+      // Open the file in a new tab
       window.open(blobUrl, "_blank");
     } catch (error) {
       console.error("Error viewing file:", error);
       alert("Unable to open file. Please try again.");
     }
   };
-  
+
   const isButtonDisabled = (app) => {
     // If HOD email is shushilavishnoi@gmail.com, only disable buttons when status is "NOC ready"
     if (hodEmail === "shusheelavishnoi@gmail.com") {
       return app.status === "NOC ready";
     }
     // For other HODs, maintain original logic
-    return !app.status || app.status === "Pending" || app.status === "Rejected" || app.status === "NOC ready";
+    return (
+      !app.status ||
+      app.status === "Pending" ||
+      app.status === "Rejected" ||
+      app.status === "NOC ready"
+    );
   };
 
   const handleAction = async (app, actionType) => {
@@ -115,17 +125,15 @@ function HodPortal() {
         submission_id: selectedApp.id,
         hod_id: hodId,
         status: action,
-        comments: remarks.trim()
+        comments: remarks.trim(),
       });
 
-      setApplications(prevApps => 
-        prevApps.map(app => 
-          app.id === selectedApp.id 
-            ? { ...app, status: action }
-            : app
+      setApplications((prevApps) =>
+        prevApps.map((app) =>
+          app.id === selectedApp.id ? { ...app, status: action } : app
         )
       );
-      
+
       setOpenDialog(false);
       setRemarks("");
       setSelectedApp(null);
@@ -140,17 +148,66 @@ function HodPortal() {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+      >
         <CircularProgress />
       </Box>
     );
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", width: "94vw", overflowX: "hidden", p: 3, backgroundColor: "#f8f9fa" }}>
-      <Container maxWidth={false} sx={{ width: "95%" }}>
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 2, width: "95%" }}>
-          <Typography variant="h4" gutterBottom sx={{ mb: 4, fontWeight: "bold", textAlign: "center", color: "#d05c24" }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#f8f9fa",
+        padding: 2,
+        overflowX: "hidden",
+      }}
+    >
+      <Container
+        maxWidth="xl"
+        disableGutters
+        sx={{
+          py: 4,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#f8f9fa",
+        }}
+      >
+        <Paper
+          elevation={3}
+          sx={{
+            p: 5,
+            borderRadius: 2,
+            width: "95%",
+            maxWidth: 1300,
+            margin: "0 auto",
+            backgroundColor: "#fff",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <Typography
+            variant="h4"
+            gutterBottom
+            sx={{
+              mb: 4,
+              fontWeight: "bold",
+              textAlign: "center",
+              color: "#d05c24",
+            }}
+          >
             HOD Portal - Application Review
           </Typography>
 
@@ -164,30 +221,66 @@ function HodPortal() {
             <Table>
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#D97C4F" }}>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Reg. No.</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Student Name</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Department</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Company</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Offer Type</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Internship Type</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>PPO Package</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Stipend</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Start Date</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>End Date</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>FPC Status</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Actions</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>NOC Status</TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Reg. No.
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Student Name
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Department
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Company
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Offer Type
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Internship Type
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    PPO Package
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Stipend
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Start Date
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    End Date
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Offer Letter
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Mail Copy
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    FPC Status
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Actions
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    NOC Status
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {applications.map((app) => (
-                  <TableRow 
+                  <TableRow
                     key={app.id}
-                    sx={{ 
-                      backgroundColor: app.status === "Approved" ? "#BDE7BD" :
-                                     app.status === "Rejected" ? "#FF8E85" :
-                                     app.status === "NOC ready" ? "#F7D2C4" :
-                                     "inherit"
+                    sx={{
+                      backgroundColor:
+                        app.status === "Approved"
+                          ? "#BDE7BD"
+                          : app.status === "Rejected"
+                          ? "#FF8E85"
+                          : app.status === "NOC ready"
+                          ? "#F7D2C4"
+                          : "inherit",
                     }}
                   >
                     <TableCell>{app.registration_number}</TableCell>
@@ -196,16 +289,67 @@ function HodPortal() {
                     <TableCell>{app.company_name}</TableCell>
                     <TableCell>{app.offer_type}</TableCell>
                     <TableCell>{app.offer_type_detail}</TableCell>
-                    <TableCell>{app.package_ppo ? `₹${app.package_ppo} LPA` : '-'}</TableCell>
+                    <TableCell>
+                      {app.package_ppo ? `₹${app.package_ppo} LPA` : "-"}
+                    </TableCell>
                     <TableCell>₹{app.stipend_amount}</TableCell>
-                    <TableCell>{new Date(app.internship_start_date).toLocaleDateString()}</TableCell>
-                    <TableCell>{new Date(app.internship_end_date).toLocaleDateString()}</TableCell>
-                    <TableCell sx={{ 
-                      backgroundColor: app.status === "Approved" ? "#BDE7BD" : 
-                                    app.status === "Rejected" ? "#FF8E85" : 
-                                    app.status === "NOC ready" ? "#F7D2C4" :
-                                    "inherit"
-                    }}>
+                    <TableCell>
+                      {new Date(app.internship_start_date).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(app.internship_end_date).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {app.offer_letter_path ? (
+                        offerLetterError ? (
+                          <Alert severity="error">{offerLetterError}</Alert>
+                        ) : (
+                        <Button
+                          onClick={() => handleFileView(app.offer_letter_path)}
+                          sx={{
+                            textDecoration: "underline",
+                            color: "primary.main",
+                          }}
+                        >
+                          View Offer Letter
+                        </Button>
+                        )
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {app.mail_copy_path ? (
+                        mailCopyError ? (
+                          <Alert severity="error">{mailCopyError}</Alert>
+                        ) : (
+                        <Button
+                          onClick={() => handleFileView(app.mail_copy_path)}
+                          sx={{
+                            textDecoration: "underline",
+                            color: "primary.main",
+                          }}
+                        >
+                          View Mail Copy
+                        </Button>
+                        )
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+
+                    <TableCell
+                      sx={{
+                        backgroundColor:
+                          app.status === "Approved"
+                            ? "#BDE7BD"
+                            : app.status === "Rejected"
+                            ? "#FF8E85"
+                            : app.status === "NOC ready"
+                            ? "#F7D2C4"
+                            : "inherit",
+                      }}
+                    >
                       {app.status || "Pending"}
                     </TableCell>
                     <TableCell>
@@ -232,12 +376,15 @@ function HodPortal() {
                     </TableCell>
                     <TableCell>
                       {app.noc_path ? (
-                         <Button
-                         onClick={() => handleFileView(app.noc_path)}
-                         sx={{ textDecoration: 'underline', color: 'primary.main' }}
-                       >
-                         View NOC
-                       </Button>
+                        <Button
+                          onClick={() => handleFileView(app.noc_path)}
+                          sx={{
+                            textDecoration: "underline",
+                            color: "primary.main",
+                          }}
+                        >
+                          View NOC
+                        </Button>
                       ) : app.status === "NOC Ready" ? (
                         "NOC Ready"
                       ) : (
@@ -251,13 +398,19 @@ function HodPortal() {
           </TableContainer>
         </Paper>
 
-        <Dialog 
-          open={openDialog} 
-          onClose={() => setOpenDialog(false)} 
-          maxWidth="sm" 
+        <Dialog
+          open={openDialog}
+          onClose={() => setOpenDialog(false)}
+          maxWidth="sm"
           fullWidth
         >
-          <DialogTitle sx={{ backgroundColor: "#d05c24", color: "white", textAlign: "center" }}>
+          <DialogTitle
+            sx={{
+              backgroundColor: "#d05c24",
+              color: "white",
+              textAlign: "center",
+            }}
+          >
             Review Application
           </DialogTitle>
           <DialogContent sx={{ mt: 2 }}>
@@ -279,7 +432,13 @@ function HodPortal() {
               sx={{ mt: 1 }}
             />
           </DialogContent>
-          <DialogActions sx={{ p: 2, backgroundColor: "#f8f9fa", borderTop: "1px solid #ddd" }}>
+          <DialogActions
+            sx={{
+              p: 2,
+              backgroundColor: "#f8f9fa",
+              borderTop: "1px solid #ddd",
+            }}
+          >
             <Button
               onClick={handleSubmit}
               variant="contained"
@@ -287,16 +446,16 @@ function HodPortal() {
             >
               Confirm {action}
             </Button>
-            <Button 
-              onClick={() => setOpenDialog(false)} 
+            <Button
+              onClick={() => setOpenDialog(false)}
               variant="outlined"
               sx={{
                 color: "#d05c24",
                 borderColor: "#d05c24",
-                '&:hover': {
+                "&:hover": {
                   borderColor: "#d05c24",
-                  backgroundColor: "rgba(208, 92, 36, 0.04)"
-                }
+                  backgroundColor: "rgba(208, 92, 36, 0.04)",
+                },
               }}
             >
               Cancel
