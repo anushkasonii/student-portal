@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { getIdFromToken } from "../utils/authUtils";
 
+import ProfileMenu from './ProfileMenu';
+
 import {
   Container,
   Paper,
@@ -154,48 +156,50 @@ function FpcPortal() {
 
   return (
     <Box
-  sx={{
-    minHeight: "100vh",
-    width: "100%", 
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    backgroundColor: "#f8f9fa",
-    overflow: "hidden", 
-    position: "initial", 
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0
-  }}
->
-  <Container
-    maxWidth={false} 
-    sx={{
-      height: "100%",
-      py: 4,
-      px: 3,
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "#f8f9fa",
-    }}
-  >
-    <Paper
-      elevation={3}
       sx={{
-        p: 5,
-        borderRadius: 2,
+        minHeight: "100vh",
         width: "100%",
-        maxWidth: "1400px", 
-        backgroundColor: "#fff",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        overflow: "hidden", 
-        maxHeight: "90vh" 
+        backgroundColor: "#f8f9fa",
+        overflow: "hidden",
+        position: "initial",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
       }}
     >
+      <ProfileMenu userRole="fpc" />
+      
+      <Container
+        maxWidth={false}
+        sx={{
+          height: "100%",
+          py: 4,
+          px: 3,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#f8f9fa",
+        }}
+      >
+        <Paper
+          elevation={3}
+          sx={{
+            p: 5,
+            borderRadius: 2,
+            width: "100%",
+            maxWidth: "1400px",
+            backgroundColor: "#fff",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            overflow: "hidden",
+            maxHeight: "90vh",
+          }}
+        >
           <Typography
             variant="h4"
             gutterBottom
@@ -219,9 +223,9 @@ function FpcPortal() {
 
           <TableContainer
             component={Paper}
-            sx={{ 
+            sx={{
               maxWidth: "100%",
-              overflow: "auto"
+              overflow: "auto",
             }}
           >
             <Table>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getIdFromToken, getEmailFromToken } from "../utils/authUtils";
+import ProfileMenu from './ProfileMenu';
 import {
   Container,
   Paper,
@@ -78,7 +79,7 @@ function HodPortal() {
 
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
-      
+
       // Open the file in a new tab
       window.open(blobUrl, "_blank");
     } catch (error) {
@@ -167,17 +168,23 @@ function HodPortal() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
         backgroundColor: "#f8f9fa",
-        padding: 2,
-        overflowX: "hidden",
+        overflow: "hidden",
+        position: "initial",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
       }}
     >
+      <ProfileMenu userRole="hod" />
+      
       <Container
-        maxWidth="xl"
-        disableGutters
+        maxWidth={false}
         sx={{
+          height: "100%",
           py: 4,
+          px: 3,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
@@ -189,13 +196,14 @@ function HodPortal() {
           sx={{
             p: 5,
             borderRadius: 2,
-            width: "95%",
-            maxWidth: 1300,
-            margin: "0 auto",
+            width: "100%",
+            maxWidth: "1400px",
             backgroundColor: "#fff",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
+            overflow: "hidden",
+            maxHeight: "90vh",
           }}
         >
           <Typography
@@ -206,18 +214,25 @@ function HodPortal() {
               fontWeight: "bold",
               textAlign: "center",
               color: "#d05c24",
+              fontSize: "2.1rem",
             }}
           >
             HOD Portal - Application Review
           </Typography>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
+            <Alert severity="error" sx={{ mb: 3, width: "100%" }}>
               {error}
             </Alert>
           )}
 
-          <TableContainer component={Paper}>
+          <TableContainer
+            component={Paper}
+            sx={{
+              maxWidth: "100%",
+              overflow: "auto",
+            }}
+          >
             <Table>
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#D97C4F" }}>
@@ -304,15 +319,17 @@ function HodPortal() {
                         offerLetterError ? (
                           <Alert severity="error">{offerLetterError}</Alert>
                         ) : (
-                        <Button
-                          onClick={() => handleFileView(app.offer_letter_path)}
-                          sx={{
-                            textDecoration: "underline",
-                            color: "primary.main",
-                          }}
-                        >
-                          View Offer Letter
-                        </Button>
+                          <Button
+                            onClick={() =>
+                              handleFileView(app.offer_letter_path)
+                            }
+                            sx={{
+                              textDecoration: "underline",
+                              color: "primary.main",
+                            }}
+                          >
+                            View Offer Letter
+                          </Button>
                         )
                       ) : (
                         "-"
@@ -323,15 +340,15 @@ function HodPortal() {
                         mailCopyError ? (
                           <Alert severity="error">{mailCopyError}</Alert>
                         ) : (
-                        <Button
-                          onClick={() => handleFileView(app.mail_copy_path)}
-                          sx={{
-                            textDecoration: "underline",
-                            color: "primary.main",
-                          }}
-                        >
-                          View Mail Copy
-                        </Button>
+                          <Button
+                            onClick={() => handleFileView(app.mail_copy_path)}
+                            sx={{
+                              textDecoration: "underline",
+                              color: "primary.main",
+                            }}
+                          >
+                            View Mail Copy
+                          </Button>
                         )
                       ) : (
                         "-"

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { deleteHod, deleteFpc } from "../services/api";
 import { MenuItem } from "@mui/material";
 import { Eye, EyeOff } from "lucide-react";
-
+import ProfileMenu from './ProfileMenu';
 import {
   IconButton,
   Container,
@@ -246,12 +246,18 @@ const [showAppPassword, setShowAppPassword] = useState(false);
         minHeight: "100vh",
         width: "100vw",
         display: "flex",
-        justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#f8f9fa",
-        padding: 2,
+        position: "initial",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
       }}
     >
+      
+      <ProfileMenu userRole="admin" />
+
       <Container maxWidth="lg">
         <Paper
           elevation={3}

@@ -274,6 +274,23 @@ export const deleteFpc = async (id) => {
   }
 };
 
+export const logout = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  
+  try {
+    await axios.post(`${API_BASE_URL}/auth/logout`, null, {
+      headers: { 
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+  } finally {
+    localStorage.clear();
+  }
+};
+
 
 export const getFileUrl = (filepath) => {
   const token = localStorage.getItem('token');

@@ -28,7 +28,6 @@ function App() {
           }
         />
 
-{/* <Route path="/fpc" element={<FpcPortal />} /> */}
 
         <Route
           path="/hod"
@@ -38,6 +37,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        
+
         <Route
           path="/admin"
           element={
@@ -46,6 +48,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* <Route path="/admin" element={<AdminPortal />} /> */}
+
         <Route path="*" element={<h1>404 Not Found</h1>} />
       </Routes>
     </Router>
