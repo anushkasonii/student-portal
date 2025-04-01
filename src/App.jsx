@@ -27,6 +27,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+{/* <Route path="/fpc" element={<FpcPortal />} /> */}
+
         <Route
           path="/hod"
           element={
