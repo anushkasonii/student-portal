@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getIdFromToken, getEmailFromToken } from "../utils/authUtils";
-import ProfileMenu from './ProfileMenu';
+import ProfileMenu from "./ProfileMenu";
 import {
   Container,
   Paper,
@@ -36,6 +36,8 @@ function HodPortal() {
   const [loading, setLoading] = useState(true);
   const [action, setAction] = useState("");
   const [hodEmail, setHodEmail] = useState("");
+  const [offerLetterError, setOfferLetterError] = useState("");
+  const [mailCopyError, setMailCopyError] = useState("");
 
   useEffect(() => {
     fetchApprovedSubmissions();
@@ -64,6 +66,12 @@ function HodPortal() {
 
   const handleFileView = async (fileUrl) => {
     const { url, headers } = getFileUrl(fileUrl);
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: headers.Authorization,
+      },
+    });
 
     try {
       const response = await fetch(url, {
@@ -82,9 +90,17 @@ function HodPortal() {
 
       // Open the file in a new tab
       window.open(blobUrl, "_blank");
+
+      setOfferLetterError("");
+      setMailCopyError("");
     } catch (error) {
       console.error("Error viewing file:", error);
-      alert("Unable to open file. Please try again.");
+      // Set appropriate error based on the file type
+      if (fileUrl.includes("offer_letter")) {
+        setOfferLetterError("Error loading file");
+      } else if (fileUrl.includes("mail_copy")) {
+        setMailCopyError("Error loading file");
+      }
     }
   };
 
@@ -164,7 +180,7 @@ function HodPortal() {
     <Box
       sx={{
         minHeight: "100vh",
-        width: "100%",
+        width: "100vw",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -178,32 +194,34 @@ function HodPortal() {
       }}
     >
       <ProfileMenu userRole="hod" />
-      
+
       <Container
         maxWidth={false}
         sx={{
           height: "100%",
+          width: "100vw",
           py: 4,
           px: 3,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           backgroundColor: "#f8f9fa",
+          overflow: "hidden",
         }}
       >
         <Paper
           elevation={3}
           sx={{
-            p: 5,
+            p: 3,
             borderRadius: 2,
             width: "100%",
-            maxWidth: "1400px",
+            maxWidth: "1500px",
             backgroundColor: "#fff",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             overflow: "hidden",
-            maxHeight: "90vh",
+            maxHeight: "100%",
           }}
         >
           <Typography
@@ -225,60 +243,147 @@ function HodPortal() {
               {error}
             </Alert>
           )}
-
           <TableContainer
             component={Paper}
             sx={{
               maxWidth: "100%",
               overflow: "auto",
+              "& .MuiTableCell-root": {
+                // Add this to reduce cell padding
+                padding: "8px 4px",
+                fontSize: "0.875rem", // Reduce font size
+                whiteSpace: "nowrap",
+              },
             }}
           >
-            <Table>
+            <Table size="small">
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#D97C4F" }}>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  <TableCell
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                      minWidth: "50px",
+                    }}
+                  >
                     Reg. No.
                   </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  <TableCell
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                      minWidth: "40px",
+                    }}
+                  >
                     Student Name
                   </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                    Department
-                  </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+
+                  <TableCell
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                      minWidth: "40px",
+                    }}
+                  >
                     Company
                   </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  <TableCell
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                      minWidth: "40px",
+                    }}
+                  >
                     Offer Type
                   </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  <TableCell
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                      minWidth: "40px",
+                    }}
+                  >
                     Internship Type
                   </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  <TableCell
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                      minWidth: "40px",
+                    }}
+                  >
                     PPO Package
                   </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  <TableCell
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                      minWidth: "40px",
+                    }}
+                  >
                     Stipend
                   </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  <TableCell
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                      minWidth: "40px",
+                    }}
+                  >
                     Start Date
                   </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  <TableCell
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                      minWidth: "30px",
+                    }}
+                  >
                     End Date
                   </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  <TableCell
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                      minWidth: "30px",
+                    }}
+                  >
                     Offer Letter
                   </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  <TableCell
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                      minWidth: "30px",
+                    }}
+                  >
                     Mail Copy
                   </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  <TableCell
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                      minWidth: "30px",
+                    }}
+                  >
                     FPC Status
                   </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  <TableCell
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                      minWidth: "80px",
+                    }}
+                  >
                     Actions
                   </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  <TableCell
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                      minWidth: "50px",
+                    }}
+                  >
                     NOC Status
                   </TableCell>
                 </TableRow>
@@ -300,7 +405,7 @@ function HodPortal() {
                   >
                     <TableCell>{app.registration_number}</TableCell>
                     <TableCell>{app.name}</TableCell>
-                    <TableCell>{app.department}</TableCell>
+
                     <TableCell>{app.company_name}</TableCell>
                     <TableCell>{app.offer_type}</TableCell>
                     <TableCell>{app.offer_type_detail}</TableCell>
@@ -326,9 +431,10 @@ function HodPortal() {
                             sx={{
                               textDecoration: "underline",
                               color: "primary.main",
+                              fontSize: "12px",
                             }}
                           >
-                            View Offer Letter
+                            View
                           </Button>
                         )
                       ) : (
@@ -345,9 +451,10 @@ function HodPortal() {
                             sx={{
                               textDecoration: "underline",
                               color: "primary.main",
+                              fontSize: "12px",
                             }}
                           >
-                            View Mail Copy
+                            View
                           </Button>
                         )
                       ) : (
@@ -398,6 +505,7 @@ function HodPortal() {
                           sx={{
                             textDecoration: "underline",
                             color: "primary.main",
+                            fontSize: "12px",
                           }}
                         >
                           View NOC
