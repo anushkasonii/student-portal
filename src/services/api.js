@@ -2,12 +2,12 @@ import axios from 'axios';
 import { getIdFromToken } from "../utils/authUtils"; 
 
 
-const SUBMISSION_SERVICE_URL = 'https://temp.6513.in/';
-const MAIN_SERVICE_URL = 'https://temp.6513.in/';
-const FILES_BASE_URL = 'https://temp.6513.in/files';
-// const SUBMISSION_SERVICE_URL = 'http://localhost:8002/';
-// const MAIN_SERVICE_URL = 'http://localhost:8002/';
-// const FILES_BASE_URL = 'http://localhost:8002/files';
+// const SUBMISSION_SERVICE_URL = 'https://temp.6513.in/';
+// const MAIN_SERVICE_URL = 'https://temp.6513.in/';
+// const FILES_BASE_URL = 'https://temp.6513.in/files';
+const SUBMISSION_SERVICE_URL = 'http://localhost:8001/';
+const MAIN_SERVICE_URL = 'http://localhost:8002/';
+const FILES_BASE_URL = 'http://localhost:8002/files';
 
 
 
@@ -274,22 +274,23 @@ export const deleteFpc = async (id) => {
   }
 };
 
+
+
 export const logout = async () => {
   const token = localStorage.getItem('token');
-  if (!token) return;
+  const userRole = localStorage.getItem('userRole');
+  if (!token || !userRole) return;
   
   try {
-    await axios.post(`${API_BASE_URL}/auth/logout`, null, {
-      headers: { 
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    // Use mainApi instance since it already has the base URL configured
+    await mainApi.post(`/${userRole}/logout`);
   } catch (error) {
     console.error('Logout error:', error);
   } finally {
     localStorage.clear();
   }
 };
+
 
 
 export const getFileUrl = (filepath) => {

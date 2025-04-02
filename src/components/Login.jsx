@@ -114,7 +114,7 @@ function Login() {
                 src={logo}
                 alt="Manipal University Jaipur"
                 style={{
-                  width: "300px",
+                  width: "320px",
                   marginBottom: "2rem",
                 }}
               />

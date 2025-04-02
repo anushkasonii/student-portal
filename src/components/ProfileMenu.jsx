@@ -8,14 +8,29 @@ const ProfileMenu = ({ userRole }) => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/');
-    } catch (error) {
-      console.error('Logout failed:', error);
+
+const handleLogout = async () => {
+  try {
+    await logout();
+    const userRole = localStorage.getItem('userRole');
+    switch (userRole) {
+      case 'admin':
+        navigate('/admin/login');
+        break;
+      case 'hod':
+        navigate('/hod/login');
+        break;
+      case 'fpc':
+        navigate('/fpc/login');
+        break;
+      default:
+        navigate('/');
     }
-  };
+  } catch (error) {
+    console.error('Logout failed:', error);
+  }
+};
+
 
   return (
     <>
