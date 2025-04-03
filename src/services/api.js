@@ -5,9 +5,9 @@ import { getIdFromToken } from "../utils/authUtils";
 // const SUBMISSION_SERVICE_URL = 'https://temp.6513.in/';
 // const MAIN_SERVICE_URL = 'https://temp.6513.in/';
 // const FILES_BASE_URL = 'https://temp.6513.in/files';
-const SUBMISSION_SERVICE_URL = 'http://192.168.97.26:8001/';
-const MAIN_SERVICE_URL = 'http://192.168.97.26:8002/';
-const FILES_BASE_URL = 'http://192.168.97.26:8002/files';
+const SUBMISSION_SERVICE_URL = 'http://10.164.140.86:8001/';
+const MAIN_SERVICE_URL = 'http://10.164.140.86:8002/';
+const FILES_BASE_URL = 'http://10.164.140.86:8002/files';
 
 
 
@@ -91,10 +91,21 @@ export const submitApplication = async (formData) => {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Submission Error:', error.response?.data || error.message);
+
+
+    // Add timeout and onUploadProgress
+    timeout: 30000,
+    onUploadProgress: (progressEvent) => {
+      const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+      console.log('Upload Progress:', percentCompleted);
+    },
+  });
+  return response.data;
+
+  } catch (error) {   //CHANGES
+    if (error.code === 'ECONNABORTED') {
+      throw new Error('Request timed out. Please try again.');
+    }
     throw error;
   }
 };
