@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getIdFromToken } from "../utils/authUtils";
-
-import ProfileMenu from './ProfileMenu';
-
+import ProfileMenu from "./ProfileMenu";
 import {
   Container,
   Paper,

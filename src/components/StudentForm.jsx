@@ -14,7 +14,11 @@ import {
 } from "@mui/material";
 import { useFormik } from "formik";
 import * as yup from "yup";
-import { submitApplication, sendOtpToEmail, verifyEmailOtp } from "../services/api";
+import {
+  submitApplication,
+  sendOtpToEmail,
+  verifyEmailOtp,
+} from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 const validationSchema = yup
@@ -72,7 +76,7 @@ const validationSchema = yup
     stipend: yup
       .number()
       .required("Stipend amount is required")
-      .positive("Stipend must be positive")
+      .min(0, "Stipend cannot be negative")
       .typeError("Please enter a valid number"),
 
     startDate: yup.date().required("Start date is required"),
@@ -94,10 +98,10 @@ const validationSchema = yup
       return true;
     }
   );
-  const validateEmail = (email) => {
-    const emailRegex = /^[a-zA-Z]+\.[a-zA-Z0-9]+@muj\.manipal\.edu$/;
-    return emailRegex.test(email);
-  };
+const validateEmail = (email) => {
+  const emailRegex = /^[a-zA-Z]+\.[a-zA-Z0-9]+@muj\.manipal\.edu$/;
+  return emailRegex.test(email);
+};
 function StudentForm() {
   const navigate = useNavigate();
   const [formErrors, setFormErrors] = useState([]);
@@ -116,8 +120,8 @@ function StudentForm() {
       if (!file.type.includes("pdf")) return "File must be a PDF";
       if (file.size > 5 * 1024 * 1024) return "File size must be less than 5MB";
 
-    const fileName = file.name;
-    if (fileName.includes(" ")) return "File name should not contain spaces"
+      const fileName = file.name;
+      if (fileName.includes(" ")) return "File name should not contain spaces";
     }
     return "";
   };
@@ -275,17 +279,17 @@ function StudentForm() {
       setSubmissionStatus("Verifying OTP...");
       const data = {
         email: formik.values.email,
-        otp: otp
+        otp: otp,
       };
       await verifyEmailOtp(data);
-  
+
       setEmailVerified(true);
       setSubmissionStatus("Email verified successfully!");
     } catch (error) {
-      console.error('Verification error:', error);
+      console.error("Verification error:", error);
       setSubmissionStatus("Invalid OTP. Please try again.");
     }
-  };  
+  };
 
   return (
     <Box
@@ -390,7 +394,14 @@ function StudentForm() {
                   disabled={emailVerified}
                 />
                 {isEmailValid && !emailVerified && (
-                  <Box sx={{ mt: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      mt: 2,
+                      display: "flex",
+                      gap: 2,
+                      alignItems: "center",
+                    }}
+                  >
                     <Button
                       variant="contained"
                       onClick={handleSendOtp}
@@ -406,7 +417,7 @@ function StudentForm() {
                           placeholder="Enter OTP"
                           value={otp}
                           onChange={(e) => setOtp(e.target.value)}
-                          sx={{ width: '150px' }}
+                          sx={{ width: "150px" }}
                         />
                         <Button
                           variant="contained"
@@ -582,66 +593,69 @@ function StudentForm() {
                 />
               </Grid>
               <Grid item xs={12}>
-  <Grid container spacing={2}> {/* Controls spacing between items */}
-    <Grid item xs={4}>
-                <TextField
-                  fullWidth
-                  id="companyCity"
-                  name="companyCity"
-                  label="Company City"
-                  value={formik.values.companyCity}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
-                  error={
-                    formik.touched.companyCity &&
-                    Boolean(formik.errors.companyCity)
-                  }
-                  helperText={
-                    formik.touched.companyCity && formik.errors.companyCity
-                  }
-                  disabled={!emailVerified}
-                />
+                <Grid container spacing={2}>
+                  {" "}
+                  {/* Controls spacing between items */}
+                  <Grid item xs={4}>
+                    <TextField
+                      fullWidth
+                      id="companyCity"
+                      name="companyCity"
+                      label="Company City"
+                      value={formik.values.companyCity}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur} // ✅ Ensures validation runs
+                      error={
+                        formik.touched.companyCity &&
+                        Boolean(formik.errors.companyCity)
+                      }
+                      helperText={
+                        formik.touched.companyCity && formik.errors.companyCity
+                      }
+                      disabled={!emailVerified}
+                    />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField
+                      fullWidth
+                      id="companyState"
+                      name="companyState"
+                      label="Company State"
+                      value={formik.values.companyState}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur} // ✅ Ensures validation runs
+                      error={
+                        formik.touched.companyState &&
+                        Boolean(formik.errors.companyState)
+                      }
+                      helperText={
+                        formik.touched.companyState &&
+                        formik.errors.companyState
+                      }
+                      disabled={!emailVerified}
+                    />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField
+                      fullWidth
+                      id="companyPin"
+                      name="companyPin"
+                      label="PIN Code"
+                      value={formik.values.companyPin}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur} // ✅ Ensures validation runs
+                      error={
+                        formik.touched.companyPin &&
+                        Boolean(formik.errors.companyPin)
+                      }
+                      helperText={
+                        formik.touched.companyPin && formik.errors.companyPin
+                      }
+                      disabled={!emailVerified}
+                    />
+                  </Grid>
+                </Grid>
               </Grid>
-              <Grid item xs={4}>
-                <TextField
-                  fullWidth
-                  id="companyState"
-                  name="companyState"
-                  label="Company State"
-                  value={formik.values.companyState}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
-                  error={
-                    formik.touched.companyState &&
-                    Boolean(formik.errors.companyState)
-                  }
-                  helperText={
-                    formik.touched.companyState && formik.errors.companyState
-                  }
-                  disabled={!emailVerified}
-                />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField
-                  fullWidth
-                  id="companyPin"
-                  name="companyPin"
-                  label="PIN Code"
-                  value={formik.values.companyPin}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur} // ✅ Ensures validation runs
-                  error={
-                    formik.touched.companyPin &&
-                    Boolean(formik.errors.companyPin)
-                  }
-                  helperText={
-                    formik.touched.companyPin && formik.errors.companyPin
-                  }
-                  disabled={!emailVerified}
-                />
-               </Grid>
-  </Grid>
-</Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -781,34 +795,34 @@ function StudentForm() {
                 />
               </Grid>
               <Grid item xs={12}>
-              <Grid container spacing={2}>
-                {formik.values.nocType === "Specific" && (
+                <Grid container spacing={2}>
+                  {formik.values.nocType === "Specific" && (
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Offer Letter (PDF only, required for Specific NOC)
+                      </Typography>
+                      <input
+                        accept="application/pdf"
+                        type="file"
+                        onChange={handleOfferLetterChange}
+                        required={formik.values.nocType === "Specific"}
+                        disabled={!emailVerified}
+                      />
+                    </Grid>
+                  )}
                   <Grid item xs={12} sm={6}>
                     <Typography variant="subtitle1" gutterBottom>
-                      Offer Letter (PDF only, required for Specific NOC)
+                      Mail Copy (PDF only, required)
                     </Typography>
                     <input
                       accept="application/pdf"
                       type="file"
-                      onChange={handleOfferLetterChange}
-                      required={formik.values.nocType === "Specific"}
+                      onChange={handleMailCopyChange}
+                      required
                       disabled={!emailVerified}
                     />
                   </Grid>
-                )}
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Mail Copy (PDF only, required)
-                  </Typography>
-                  <input
-                    accept="application/pdf"
-                    type="file"
-                    onChange={handleMailCopyChange}
-                    required
-                    disabled={!emailVerified}
-                  />
                 </Grid>
-              </Grid>
               </Grid>
 
               <Grid item xs={12}>
