@@ -258,7 +258,7 @@ function HodPortal() {
           >
             <Table size="small">
               <TableHead>
-                <TableRow sx={{ backgroundColor: "#D97C4F" }}>
+                <TableRow sx={{ backgroundColor: "#D97C4F" , justifyContent:'center'}}>
                   <TableCell
                     sx={{
                       color: "white",
