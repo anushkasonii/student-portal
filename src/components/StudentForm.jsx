@@ -44,20 +44,33 @@ const validationSchema = yup
     gender: yup.string().required("Gender is required"),
     section: yup.string().required("Section is required"),
     offerType: yup.string().required("Offer Type is required"),
-    companyName: yup
-      .string()
-      .required("Company name is required")
-      .matches(
-        /^[A-Z][a-zA-Z\s]*$/,
-        "The first letter of the company name should be capital"
-      ),
+    companyName: yup.string().when("nocType", {
+      is: "Specific",
+      then: () => yup
+        .string()
+        .required("Company name is required")
+        .matches(/^[A-Z][a-zA-Z\s]*$/, "The first letter of the company name should be capital"),
+      otherwise: () => yup.string(),
+    }),
 
-    companyCity: yup.string().required("City is required"),
-    companyState: yup.string().required("State is required"),
-    companyPin: yup
-      .string()
-      .matches(/^[0-9]{6}$/, "PIN code must be 6 digits")
-      .required("PIN code is required"),
+    companyCity: yup.string().when("nocType", {
+      is: "Specific",
+      then: () => yup.string().required("City is required"),
+      otherwise: () => yup.string(),
+    }),
+    companyState: yup.string().when("nocType", {
+      is: "Specific",
+      then: () => yup.string().required("State is required"),
+      otherwise: () => yup.string(),
+    }),
+    companyPin: yup.string().when("nocType", {
+      is: "Specific",
+      then: () => yup
+        .string()
+        .matches(/^[0-9]{6}$/, "PIN code must be 6 digits")
+        .required("PIN code is required"),
+      otherwise: () => yup.string(),
+    }),
     internshipType: yup.string().required("Internship type is required"),
     hrdEmail: yup.string().email("Enter a valid email"),
     hrdNumber: yup
