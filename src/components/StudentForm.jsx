@@ -46,10 +46,14 @@ const validationSchema = yup
     offerType: yup.string().required("Offer Type is required"),
     companyName: yup.string().when("nocType", {
       is: "Specific",
-      then: () => yup
-        .string()
-        .required("Company name is required")
-        .matches(/^[A-Z][a-zA-Z\s]*$/, "The first letter of the company name should be capital"),
+      then: () =>
+        yup
+          .string()
+          .required("Company name is required")
+          .matches(
+            /^[A-Z][a-zA-Z\s]*$/,
+            "The first letter of the company name should be capital"
+          ),
       otherwise: () => yup.string(),
     }),
 
@@ -65,10 +69,11 @@ const validationSchema = yup
     }),
     companyPin: yup.string().when("nocType", {
       is: "Specific",
-      then: () => yup
-        .string()
-        .matches(/^[0-9]{6}$/, "PIN code must be 6 digits")
-        .required("PIN code is required"),
+      then: () =>
+        yup
+          .string()
+          .matches(/^[0-9]{6}$/, "PIN code must be 6 digits")
+          .required("PIN code is required"),
       otherwise: () => yup.string(),
     }),
     internshipType: yup.string().required("Internship type is required"),
@@ -126,6 +131,7 @@ function StudentForm() {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateFile = (file, isRequired = false) => {
     if (isRequired && !file) return "File is required";
@@ -166,14 +172,16 @@ function StudentForm() {
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
+      if (isSubmitting) return; // Prevent multiple submissions
       if (!emailVerified) {
         setSubmissionStatus("Please verify your email first.");
         return;
       }
 
       try {
+        setIsSubmitting(true); // Set loading state
         setFileError("");
-        setSubmissionStatus("");
+        setSubmissionStatus("Processing your application...");
 
         // Validate files based on NOC type
         const mailCopyError = validateFile(mailCopy, true);
@@ -241,6 +249,9 @@ function StudentForm() {
         setSubmissionStatus(
           error.response?.data?.message || "Failed to submit application"
         );
+      }
+      finally {
+        setIsSubmitting(false); // Reset loading state
       }
     },
   });
@@ -867,9 +878,17 @@ function StudentForm() {
                   sx={{ backgroundColor: "#d05c24" }}
                   fullWidth
                   className="submit-button"
+                  disabled={isSubmitting || !formik.values.termsAccepted}
                   // disabled={!formik.isValid || !formik.values.termsAccepted}
                 >
-                  Submit Application
+                  {isSubmitting ? (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <CircularProgress size={20} sx={{ color: "white" }} />
+                      <span>Submitting Application...</span>
+                    </Box>
+                  ) : (
+                    "Submit Application"
+                  )}
                 </Button>
               </Grid>
             </Grid>
