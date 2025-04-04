@@ -247,7 +247,7 @@ function Login() {
                         <IconButton
                           onClick={handleTogglePassword}
                           edge="end"
-                          aria-label="toggle password visibility"
+                          onMouseDown={(e) => e.preventDefault()}
                           sx={{ color: "#4a5568" }}
                         >
                           {showPassword ? (
