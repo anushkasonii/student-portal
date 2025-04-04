@@ -39,6 +39,7 @@ function HodPortal() {
   const [offerLetterError, setOfferLetterError] = useState("");
   const [mailCopyError, setMailCopyError] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   useEffect(() => {
     fetchApprovedSubmissions();
@@ -141,7 +142,7 @@ function HodPortal() {
       setError("HOD ID not found");
       return;
     }
-
+    setConfirmLoading(true);
     try {
       await createHodReview({
         submission_id: selectedApp.id,
@@ -165,6 +166,8 @@ function HodPortal() {
     } catch (error) {
       setError("Failed to submit review");
       console.error("Error submitting review:", error);
+    }finally {
+      setConfirmLoading(false);
     }
   };
 
@@ -605,13 +608,23 @@ function HodPortal() {
           >
             <Button
               onClick={handleSubmit}
+              disabled={confirmLoading}
               variant="contained"
               color={action === "Approved" ? "success" : "error"}
             >
-              Confirm {action}
-            </Button>
+              {confirmLoading ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CircularProgress size={20} sx={{ color: '#d05c24' }} />
+                <span>Processing...</span>
+              </Box>
+            ) : (
+              `Confirm ${action}`
+            )}
+          </Button>
+      
             <Button
               onClick={() => setOpenDialog(false)}
+              disabled={confirmLoading}
               variant="outlined"
               sx={{
                 color: "#d05c24",
