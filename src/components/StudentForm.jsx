@@ -259,6 +259,7 @@ function StudentForm() {
 
   // File handlers
   const handleOfferLetterChange = (event) => {
+    try{
     const file = event.target.files[0];
     const error = validateFile(file, formik.values.nocType === "Specific");
     if (error) {
@@ -267,6 +268,10 @@ function StudentForm() {
     }
     setOfferLetter(file);
     setFileError("");
+  } catch (error) {
+    setFileError("Error processing file. Please try again."
+    );
+  }
   };
 
   const handleMailCopyChange = (event) => {
@@ -489,8 +494,8 @@ function StudentForm() {
                   }
                   disabled={!emailVerified}
                 >
-                  <MenuItem value="CSE">CSE</MenuItem>
-                  <MenuItem value="IT">IT</MenuItem>
+                  <MenuItem value="CSE">Computer Science and Engineering</MenuItem>
+                  <MenuItem value="IT">Information Technology</MenuItem>
                 </TextField>
               </Grid>
               <Grid item xs={12} sm={6}>
