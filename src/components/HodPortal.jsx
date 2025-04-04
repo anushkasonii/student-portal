@@ -38,6 +38,7 @@ function HodPortal() {
   const [hodEmail, setHodEmail] = useState("");
   const [offerLetterError, setOfferLetterError] = useState("");
   const [mailCopyError, setMailCopyError] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     fetchApprovedSubmissions();
@@ -65,6 +66,8 @@ function HodPortal() {
   };
 
   const handleFileView = async (fileUrl) => {
+    if (actionLoading) return;
+    setActionLoading(true);
     const { url, headers } = getFileUrl(fileUrl);
     const response = await fetch(url, {
       method: "GET",
@@ -101,6 +104,8 @@ function HodPortal() {
       } else if (fileUrl.includes("mail_copy")) {
         setMailCopyError("Error loading file");
       }
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -258,7 +263,9 @@ function HodPortal() {
           >
             <Table size="small">
               <TableHead>
-                <TableRow sx={{ backgroundColor: "#D97C4F" , justifyContent:'center'}}>
+                <TableRow
+                  sx={{ backgroundColor: "#D97C4F", justifyContent: "center" }}
+                >
                   <TableCell
                     sx={{
                       color: "white",
@@ -483,18 +490,50 @@ function HodPortal() {
                           color="success"
                           size="small"
                           onClick={() => handleAction(app, "Approved")}
-                          disabled={isButtonDisabled(app)}
+                          disabled={isButtonDisabled(app) || actionLoading}
                         >
-                          Approve
+                          {actionLoading ? (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <CircularProgress
+                                size={20}
+                                sx={{ color: "white" }}
+                              />
+                              <span>Processing...</span>
+                            </Box>
+                          ) : (
+                            "Approve"
+                          )}
                         </Button>
                         <Button
                           variant="contained"
                           color="error"
                           size="small"
                           onClick={() => handleAction(app, "Rejected")}
-                          disabled={isButtonDisabled(app)}
+                          disabled={isButtonDisabled(app) || actionLoading}
                         >
-                          Reject
+                          {actionLoading ? (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <CircularProgress
+                                size={20}
+                                sx={{ color: "white" }}
+                              />
+                              <span>Processing...</span>
+                            </Box>
+                          ) : (
+                            "Reject"
+                          )}
                         </Button>
                       </Box>
                     </TableCell>
