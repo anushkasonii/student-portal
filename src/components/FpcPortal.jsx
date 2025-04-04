@@ -31,6 +31,7 @@ function FpcPortal() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [action, setAction] = useState("");
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   useEffect(() => {
     fetchSubmissions();
@@ -118,7 +119,7 @@ function FpcPortal() {
       setError("FPC ID not found");
       return;
     }
-
+    setConfirmLoading(true);
     try {
       const reviewData = {
         submission_id: selectedApp.id,
@@ -136,6 +137,8 @@ function FpcPortal() {
       setError("");
     } catch (error) {
       setError(error.response?.data?.message || "Failed to submit review");
+    }finally {
+      setConfirmLoading(false);
     }
   };
 
@@ -170,7 +173,7 @@ function FpcPortal() {
       }}
     >
       <ProfileMenu userRole="fpc" />
-      
+
       <Container
         maxWidth={false}
         sx={{
@@ -567,12 +570,19 @@ function FpcPortal() {
           >
             <Button
               onClick={handleSubmit}
+              disabled={confirmLoading}
               variant="contained"
               color={action === "Approve" ? "success" : "error"}
               sx={{ fontSize: "1rem" }}
-            >
-              Confirm {action}
-            </Button>
+            >{confirmLoading ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CircularProgress size={20} sx={{ color: '#d05c24' }} />
+                <span>Processing...</span>
+              </Box>
+            ) : (
+              `Confirm ${action}`
+            )}
+          </Button>
             <Button
               onClick={() => setOpenDialog(false)}
               variant="outlined"
