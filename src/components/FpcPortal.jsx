@@ -109,7 +109,7 @@ function FpcPortal() {
   };
 
   const handleSubmit = async () => {
-    if (action === "Reject" && !remarks.trim()) {
+    if (action === "Rejected" && !remarks.trim()) {
       setError("Comments are required for rejection");
       return;
     }
