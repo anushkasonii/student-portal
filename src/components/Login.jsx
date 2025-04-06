@@ -61,7 +61,7 @@ function Login() {
         navigate(path);
         break;
       } catch (err) {
-        console.error(`Failed login for ${role}:`, err);  
+        console.error(`Failed login for ${role}:`, err);
         continue;
       }
     }
@@ -101,7 +101,8 @@ function Login() {
           right: 0,
           width: "60%",
           height: "100%",
-          background: "linear-gradient(135deg, rgba(208, 92, 36, 0.05) 0%, rgba(241, 125, 74, 0.05) 100%)",
+          background:
+            "linear-gradient(135deg, rgba(208, 92, 36, 0.05) 0%, rgba(241, 125, 74, 0.05) 100%)",
           clipPath: "polygon(20% 0, 100% 0, 100% 100%, 0% 100%)",
         }}
       />
@@ -246,9 +247,14 @@ function Login() {
                         <IconButton
                           onClick={handleTogglePassword}
                           edge="end"
+                          onMouseDown={(e) => e.preventDefault()}
                           sx={{ color: "#4a5568" }}
                         >
-                          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                          {showPassword ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
                         </IconButton>
                       </InputAdornment>
                     ),

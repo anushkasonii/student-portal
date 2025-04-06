@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { deleteHod, deleteFpc } from "../services/api";
 import { MenuItem } from "@mui/material";
 import { Eye, EyeOff } from "lucide-react";
-import ProfileMenu from './ProfileMenu';
+import ProfileMenu from "./ProfileMenu";
 import {
   IconButton,
   Container,
@@ -30,14 +30,14 @@ import { getHods, getFpcs, createHod, createFpc } from "../services/api";
 // Logger utility for consistent logging
 const Logger = {
   info: (message, data) => {
-    console.log(`[AdminPortal][INFO] ${message}`, data ? data : '');
+    console.log(`[AdminPortal][INFO] ${message}`, data ? data : "");
   },
   error: (message, error) => {
     console.error(`[AdminPortal][ERROR] ${message}`, error);
   },
   warn: (message, data) => {
-    console.warn(`[AdminPortal][WARN] ${message}`, data ? data : '');
-  }
+    console.warn(`[AdminPortal][WARN] ${message}`, data ? data : "");
+  },
 };
 
 function AdminPortal() {
@@ -47,7 +47,8 @@ function AdminPortal() {
   const [error, setError] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-const [showAppPassword, setShowAppPassword] = useState(false);
+  const [showAppPassword, setShowAppPassword] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const [dialogType, setDialogType] = useState("");
   const [formData, setFormData] = useState({
@@ -56,7 +57,7 @@ const [showAppPassword, setShowAppPassword] = useState(false);
     password: "",
     app_password: "",
     department: "",
-  });  
+  });
 
   useEffect(() => {
     Logger.info("Component mounted, initializing data fetch");
@@ -70,7 +71,7 @@ const [showAppPassword, setShowAppPassword] = useState(false);
     Logger.info("Starting data fetch operation");
     try {
       setLoading(true);
-      
+
       Logger.info("Fetching HODs data");
       const fetchedHods = await getHods();
       Logger.info("HODs data received", { count: fetchedHods?.length });
@@ -80,10 +81,14 @@ const [showAppPassword, setShowAppPassword] = useState(false);
       Logger.info("FPCs data received", { count: fetchedFpcs?.length });
 
       if (!Array.isArray(fetchedHods)) {
-        Logger.warn("HODs data is not an array", { received: typeof fetchedHods });
+        Logger.warn("HODs data is not an array", {
+          received: typeof fetchedHods,
+        });
       }
       if (!Array.isArray(fetchedFpcs)) {
-        Logger.warn("FPCs data is not an array", { received: typeof fetchedFpcs });
+        Logger.warn("FPCs data is not an array", {
+          received: typeof fetchedFpcs,
+        });
       }
 
       setHods(Array.isArray(fetchedHods) ? fetchedHods : []);
@@ -112,18 +117,25 @@ const [showAppPassword, setShowAppPassword] = useState(false);
     //   department: "CSE"
     // });
   };
-  
 
   const handleCloseDialog = () => {
     Logger.info("Closing dialog");
     setOpenDialog(false);
     setDialogType("");
-    setFormData({ name: "", email: "", password: "", app_password: "", department: "" });
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+      app_password: "",
+      department: "",
+    });
     setShowPassword(false);
     setShowAppPassword(false);
   };
 
   const handleDelete = async (type, id) => {
+    if (actionLoading) return;
+    setActionLoading(true);
     Logger.info("Attempting deletion", { type, id });
     try {
       setLoading(true);
@@ -142,6 +154,7 @@ const [showAppPassword, setShowAppPassword] = useState(false);
       setError(errorMessage);
     } finally {
       setLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -181,6 +194,8 @@ const [showAppPassword, setShowAppPassword] = useState(false);
   };
 
   const handleSubmit = async () => {
+    if (actionLoading) return;
+    setActionLoading(true);
     Logger.info("Processing form submission", { dialogType });
     try {
       if (!validateFormData()) {
@@ -188,25 +203,25 @@ const [showAppPassword, setShowAppPassword] = useState(false);
       }
 
       setLoading(true);
-      
+
       // Construct payload exactly as required
       const payload = {
         email: formData.email,
         name: formData.name,
         password: formData.password,
         department: formData.department,
-        app_password: formData.app_password
+        app_password: formData.app_password,
       };
-  
-      Logger.info("Submitting data", { 
-        type: dialogType, 
-        payload: { 
+
+      Logger.info("Submitting data", {
+        type: dialogType,
+        payload: {
           ...payload,
-          password: '[REDACTED]',
-          app_password: '[REDACTED]'
-        } 
+          password: "[REDACTED]",
+          app_password: "[REDACTED]",
+        },
       });
-  
+
       if (dialogType === "hod") {
         await createHod(payload);
         Logger.info("HOD created successfully");
@@ -214,16 +229,18 @@ const [showAppPassword, setShowAppPassword] = useState(false);
         await createFpc(payload);
         Logger.info("FPC created successfully");
       }
-  
+
       await fetchData();
       handleCloseDialog();
       setError("");
     } catch (err) {
-      const errorMessage = err.response?.data?.error || "Failed to create entry";
+      const errorMessage =
+        err.response?.data?.error || "Failed to create entry";
       Logger.error("Submission failed", err);
       setError(errorMessage);
     } finally {
       setLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -255,7 +272,6 @@ const [showAppPassword, setShowAppPassword] = useState(false);
         bottom: 0,
       }}
     >
-      
       <ProfileMenu userRole="admin" />
 
       <Container maxWidth="lg">
@@ -369,8 +385,25 @@ const [showAppPassword, setShowAppPassword] = useState(false);
                         color="error"
                         size="small"
                         onClick={() => handleDelete("fpc", fpc.id)}
+                        disabled={actionLoading}
                       >
-                        Delete
+                        {actionLoading ? (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            <CircularProgress
+                              size={20}
+                              sx={{ color: "white" }}
+                            />
+                            <span>Processing...</span>
+                          </Box>
+                        ) : (
+                          "Delete"
+                        )}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -438,7 +471,7 @@ const [showAppPassword, setShowAppPassword] = useState(false);
               sx={{ mb: 2 }}
             /> */}
 
-<TextField
+            <TextField
               label="Password"
               type={showPassword ? "text" : "password"}
               fullWidth
