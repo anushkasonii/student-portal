@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { getIdFromToken } from "../utils/authUtils";
 import ProfileMenu from "./ProfileMenu";
 import { Download } from "lucide-react";
-import { useMemo } from 'react';
-import { TablePagination } from '@mui/material';
+import { useMemo } from "react";
+import { TablePagination } from "@mui/material";
 import * as XLSX from "xlsx";
 import {
   Container,
@@ -176,32 +176,45 @@ function FpcPortal() {
   }
 
   const handleDownloadExcel = () => {
+    // Add console.log to debug
+    console.log("All applications:", applications);
+
     // Filter only approved submissions
     const approvedSubmissions = applications.filter(
       (app) => app.status === "Approved"
     );
+    console.log("Approved submissions:", approvedSubmissions);
 
-    // Prepare data for Excel
+    // Prepare data for Excel with null checks
     const excelData = approvedSubmissions.map((app) => ({
-      "Registration Number": app.registration_number,
-      "Student Name": app.name,
-      Department: app.department,
-      Company: app.company_name,
-      "Offer Type": app.offer_type,
-      Stipend: app.stipend,
-      "Internship Type": app.internship_type,
-      "PPO Package": app.ppo_package,
-      "Start Date": app.start_date,
-      "End Date": app.end_date,
+      "Registration Number": app?.registration_number || "",
+      "Student Name": app?.student_name || app?.name || "",
+      Department: app?.department || "",
+      "Company Name": app?.company_name || "",
+      "Offer Type": app?.offer_type || "",
+      Stipend: app?.stipend || "",
+      "Internship Type": app?.internship_type || "",
+      "PPO Package": app?.ppo_package || "",
+      "Start Date": app?.start_date || "",
+      "End Date": app?.end_date || "",
+      Status: app?.status || "",
+      Comments: app?.comments || "",
     }));
 
-    // Create worksheet
-    const ws = XLSX.utils.json_to_sheet(excelData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Approved Applications");
+    console.log("Excel data:", excelData);
 
-    // Generate Excel file
-    XLSX.writeFile(wb, "approved_applications.xlsx");
+    // Create worksheet with error handling
+    try {
+      const ws = XLSX.utils.json_to_sheet(excelData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Approved Applications");
+
+      // Generate Excel file
+      XLSX.writeFile(wb, "approved_applications.xlsx");
+    } catch (error) {
+      console.error("Error generating Excel:", error);
+      alert("Error generating Excel file");
+    }
   };
 
   return (
@@ -251,46 +264,45 @@ function FpcPortal() {
           }}
         >
           <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                mb: 1,
-                width: "100%", // Added width
-                px: 3,
-              }}
-            >
-          <Typography
-            variant="h4"
-            gutterBottom
-            color="primary"
             sx={{
-              mb: 4,
-              fontWeight: "bold",
-              textAlign: "center",
-              color: "#d05c24",
-              fontSize: "2.1rem",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              mb: 1,
+              width: "100%", // Added width
+              px: 3,
             }}
           >
-            FPC Portal - Student Applications
-          </Typography>
+            <Typography
+              variant="h4"
+              gutterBottom
+              color="primary"
+              sx={{
+                mb: 4,
+                fontWeight: "bold",
+                textAlign: "center",
+                color: "#d05c24",
+                fontSize: "2.1rem",
+              }}
+            >
+              FPC Portal - Student Applications
+            </Typography>
 
-         
             <Button
               variant="contained"
               startIcon={<Download size={20} />}
               onClick={handleDownloadExcel}
               sx={{
                 marginBottom: 4,
-                  position: "absolute",
-                  right: 29,
+                position: "absolute",
+                right: 29,
                 backgroundColor: "#d05c24",
                 "&:hover": {
                   backgroundColor: "#bf4e1f",
                 },
               }}
             >
-              Download 
+              Download
             </Button>
           </Box>
 
