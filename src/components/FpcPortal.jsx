@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { getIdFromToken } from "../utils/authUtils";
 import ProfileMenu from "./ProfileMenu";
+import { Download } from "lucide-react";
+import * as XLSX from "xlsx";
 import {
   Container,
   Paper,
@@ -137,7 +139,7 @@ function FpcPortal() {
       setError("");
     } catch (error) {
       setError(error.response?.data?.message || "Failed to submit review");
-    }finally {
+    } finally {
       setConfirmLoading(false);
     }
   };
@@ -154,6 +156,35 @@ function FpcPortal() {
       </Box>
     );
   }
+
+  const handleDownloadExcel = () => {
+    // Filter only approved submissions
+    const approvedSubmissions = applications.filter(
+      (app) => app.status === "Approved"
+    );
+
+    // Prepare data for Excel
+    const excelData = approvedSubmissions.map((app) => ({
+      "Registration Number": app.registration_number,
+      "Student Name": app.name,
+      Department: app.department,
+      Company: app.company_name,
+      "Offer Type": app.offer_type,
+      Stipend: app.stipend,
+      "Internship Type": app.internship_type,
+      "PPO Package": app.ppo_package,
+      "Start Date": app.start_date,
+      "End Date": app.end_date,
+    }));
+
+    // Create worksheet
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Approved Applications");
+
+    // Generate Excel file
+    XLSX.writeFile(wb, "approved_applications.xlsx");
+  };
 
   return (
     <Box
@@ -215,6 +246,22 @@ function FpcPortal() {
           >
             FPC Portal - Student Applications
           </Typography>
+
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<Download size={20} />}
+              onClick={handleDownloadExcel}
+              sx={{
+                backgroundColor: "#d05c24",
+                "&:hover": {
+                  backgroundColor: "#bf4e1f",
+                },
+              }}
+            >
+              Download Approved Applications
+            </Button>
+          </Box>
 
           {error && (
             <Alert severity="error" sx={{ mb: 3, width: "100%" }}>
@@ -574,15 +621,16 @@ function FpcPortal() {
               variant="contained"
               color={action === "Approve" ? "success" : "error"}
               sx={{ fontSize: "1rem" }}
-            >{confirmLoading ? (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CircularProgress size={20} sx={{ color: '#d05c24' }} />
-                <span>Processing...</span>
-              </Box>
-            ) : (
-              `Confirm ${action}`
-            )}
-          </Button>
+            >
+              {confirmLoading ? (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <CircularProgress size={20} sx={{ color: "#d05c24" }} />
+                  <span>Processing...</span>
+                </Box>
+              ) : (
+                `Confirm ${action}`
+              )}
+            </Button>
             <Button
               onClick={() => setOpenDialog(false)}
               variant="outlined"

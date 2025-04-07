@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { getIdFromToken, getEmailFromToken } from "../utils/authUtils";
+import { Download } from "lucide-react";
+import * as XLSX from "xlsx";
 import ProfileMenu from "./ProfileMenu";
 import {
   Container,
@@ -166,7 +168,7 @@ function HodPortal() {
     } catch (error) {
       setError("Failed to submit review");
       console.error("Error submitting review:", error);
-    }finally {
+    } finally {
       setConfirmLoading(false);
     }
   };
@@ -183,6 +185,36 @@ function HodPortal() {
       </Box>
     );
   }
+
+  const handleDownloadExcel = () => {
+    // Filter only NOC-ready submissions (approved by FPC)
+    const nocReadySubmissions = applications.filter(
+      (app) => app.fpc_status === "Approved"
+    );
+
+    // Prepare data for Excel
+    const excelData = nocReadySubmissions.map((app) => ({
+      "Registration Number": app.registration_number,
+      "Student Name": app.name,
+      Department: app.department,
+      Company: app.company_name,
+      "Offer Type": app.offer_type,
+      Stipend: app.stipend,
+      "Internship Type": app.internship_type,
+      "PPO Package": app.ppo_package,
+      "Start Date": app.start_date,
+      "End Date": app.end_date,
+      "FPC Comments": app.fpc_comments || "No comments",
+    }));
+
+    // Create worksheet
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "NOC Ready Applications");
+
+    // Generate Excel file
+    XLSX.writeFile(wb, "noc_ready_applications.xlsx");
+  };
 
   return (
     <Box
@@ -246,6 +278,21 @@ function HodPortal() {
             HOD Portal - Application Review
           </Typography>
 
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<Download size={20} />}
+              onClick={handleDownloadExcel}
+              sx={{
+                backgroundColor: "#d05c24",
+                "&:hover": {
+                  backgroundColor: "#bf4e1f",
+                },
+              }}
+            >
+              Download NOC Ready Applications
+            </Button>
+          </Box>
           {error && (
             <Alert severity="error" sx={{ mb: 3, width: "100%" }}>
               {error}
@@ -613,15 +660,15 @@ function HodPortal() {
               color={action === "Approved" ? "success" : "error"}
             >
               {confirmLoading ? (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CircularProgress size={20} sx={{ color: '#d05c24' }} />
-                <span>Processing...</span>
-              </Box>
-            ) : (
-              `Confirm ${action}`
-            )}
-          </Button>
-      
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <CircularProgress size={20} sx={{ color: "#d05c24" }} />
+                  <span>Processing...</span>
+                </Box>
+              ) : (
+                `Confirm ${action}`
+              )}
+            </Button>
+
             <Button
               onClick={() => setOpenDialog(false)}
               disabled={confirmLoading}
