@@ -34,6 +34,8 @@ function FpcPortal() {
   const [loading, setLoading] = useState(true);
   const [action, setAction] = useState("");
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage] = useState(10);
 
   useEffect(() => {
     fetchSubmissions();
@@ -109,6 +111,20 @@ function FpcPortal() {
     }
     return "";
   };
+
+  const sortedApplications = useMemo(() => {
+    return [...applications].sort((a, b) => {
+      const statusPriority = {
+        Pending: 0,
+        Approved: 1,
+        Rejected: 2,
+      };
+      return (
+        statusPriority[a.status || "Pending"] -
+        statusPriority[b.status || "Pending"]
+      );
+    });
+  }, [applications]);
 
   const handleSubmit = async () => {
     if (action === "Rejected" && !remarks.trim()) {
@@ -409,160 +425,182 @@ function FpcPortal() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  applications.map((app) => {
-                    const offerLetterError = validatePdf(app.offer_letter_path);
-                    const mailCopyError = validatePdf(app.mail_copy_path);
-                    return (
-                      <TableRow
-                        key={app.id}
-                        sx={{
-                          backgroundColor:
-                            app.status === "Approved"
-                              ? "#BDE7BD"
-                              : app.status === "Rejected"
-                              ? "#FF8E85"
-                              : app.status === "NOC ready"
-                              ? "#F7D2C4"
-                              : "inherit",
-                        }}
-                      >
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
+                  sortedApplications
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((app) => {
+                      const offerLetterError = validatePdf(
+                        app.offer_letter_path
+                      );
+                      const mailCopyError = validatePdf(app.mail_copy_path);
+                      return (
+                        <TableRow
+                          key={app.id}
+                          sx={{
+                            backgroundColor:
+                              app.status === "Approved"
+                                ? "#BDE7BD"
+                                : app.status === "Rejected"
+                                ? "#FF8E85"
+                                : app.status === "NOC ready"
+                                ? "#F7D2C4"
+                                : "inherit",
+                          }}
                         >
-                          {app.registration_number}
-                        </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          {app.name}
-                        </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          {app.department}
-                        </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          {app.company_name}
-                        </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          {app.offer_type}
-                        </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          ₹{app.stipend_amount}
-                        </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          {app.offer_type_detail}
-                        </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          {app.package_ppo || "-"}
-                        </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          {app.offer_letter_path ? (
-                            offerLetterError ? (
-                              <Alert severity="error">{offerLetterError}</Alert>
+                          <TableCell
+                            sx={{ textAlign: "center", fontSize: "1rem" }}
+                          >
+                            {app.registration_number}
+                          </TableCell>
+                          <TableCell
+                            sx={{ textAlign: "center", fontSize: "1rem" }}
+                          >
+                            {app.name}
+                          </TableCell>
+                          <TableCell
+                            sx={{ textAlign: "center", fontSize: "1rem" }}
+                          >
+                            {app.department}
+                          </TableCell>
+                          <TableCell
+                            sx={{ textAlign: "center", fontSize: "1rem" }}
+                          >
+                            {app.company_name}
+                          </TableCell>
+                          <TableCell
+                            sx={{ textAlign: "center", fontSize: "1rem" }}
+                          >
+                            {app.offer_type}
+                          </TableCell>
+                          <TableCell
+                            sx={{ textAlign: "center", fontSize: "1rem" }}
+                          >
+                            ₹{app.stipend_amount}
+                          </TableCell>
+                          <TableCell
+                            sx={{ textAlign: "center", fontSize: "1rem" }}
+                          >
+                            {app.offer_type_detail}
+                          </TableCell>
+                          <TableCell
+                            sx={{ textAlign: "center", fontSize: "1rem" }}
+                          >
+                            {app.package_ppo || "-"}
+                          </TableCell>
+                          <TableCell
+                            sx={{ textAlign: "center", fontSize: "1rem" }}
+                          >
+                            {app.offer_letter_path ? (
+                              offerLetterError ? (
+                                <Alert severity="error">
+                                  {offerLetterError}
+                                </Alert>
+                              ) : (
+                                <Button
+                                  onClick={() =>
+                                    handleFileView(app.offer_letter_path)
+                                  }
+                                  sx={{
+                                    textDecoration: "underline",
+                                    color: "primary.main",
+                                  }}
+                                >
+                                  View Offer Letter
+                                </Button>
+                              )
                             ) : (
-                              <Button
-                                onClick={() =>
-                                  handleFileView(app.offer_letter_path)
-                                }
+                              "-"
+                            )}
+                          </TableCell>
+                          <TableCell
+                            sx={{ textAlign: "center", fontSize: "1rem" }}
+                          >
+                            {app.mail_copy_path ? (
+                              mailCopyError ? (
+                                <Alert severity="error">{mailCopyError}</Alert>
+                              ) : (
+                                <Button
+                                  onClick={() =>
+                                    handleFileView(app.mail_copy_path)
+                                  }
+                                  sx={{
+                                    textDecoration: "underline",
+                                    color: "primary.main",
+                                  }}
+                                >
+                                  View Mail Copy
+                                </Button>
+                              )
+                            ) : (
+                              "-"
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {app.status === "Pending" && (
+                              <Box
                                 sx={{
-                                  textDecoration: "underline",
-                                  color: "primary.main",
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: 1,
                                 }}
                               >
-                                View Offer Letter
-                              </Button>
-                            )
-                          ) : (
-                            "-"
-                          )}
-                        </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          {app.mail_copy_path ? (
-                            mailCopyError ? (
-                              <Alert severity="error">{mailCopyError}</Alert>
-                            ) : (
-                              <Button
-                                onClick={() =>
-                                  handleFileView(app.mail_copy_path)
-                                }
-                                sx={{
-                                  textDecoration: "underline",
-                                  color: "primary.main",
-                                }}
-                              >
-                                View Mail Copy
-                              </Button>
-                            )
-                          ) : (
-                            "-"
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {app.status === "Pending" && (
-                            <Box
+                                <Button
+                                  variant="contained"
+                                  color="success"
+                                  size="small"
+                                  onClick={() =>
+                                    handleActionClick(app, "Approved")
+                                  }
+                                >
+                                  Approve
+                                </Button>
+                                <Button
+                                  variant="contained"
+                                  color="error"
+                                  size="small"
+                                  onClick={() =>
+                                    handleActionClick(app, "Rejected")
+                                  }
+                                >
+                                  Reject
+                                </Button>
+                              </Box>
+                            )}
+                          </TableCell>
+                          <TableCell
+                            sx={{ textAlign: "center", fontSize: "1rem" }}
+                          >
+                            <Typography
                               sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: 1,
+                                fontWeight: "bold",
+                                color: getStatusTextColor(app.status),
                               }}
                             >
-                              <Button
-                                variant="contained"
-                                color="success"
-                                size="small"
-                                onClick={() =>
-                                  handleActionClick(app, "Approved")
-                                }
-                              >
-                                Approve
-                              </Button>
-                              <Button
-                                variant="contained"
-                                color="error"
-                                size="small"
-                                onClick={() =>
-                                  handleActionClick(app, "Rejected")
-                                }
-                              >
-                                Reject
-                              </Button>
-                            </Box>
-                          )}
-                        </TableCell>
-                        <TableCell
-                          sx={{ textAlign: "center", fontSize: "1rem" }}
-                        >
-                          <Typography
-                            sx={{
-                              fontWeight: "bold",
-                              color: getStatusTextColor(app.status),
-                            }}
-                          >
-                            {app.status}
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
+                              {app.status}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                 )}
               </TableBody>
             </Table>
           </TableContainer>
+          <TablePagination
+            component="div"
+            count={applications.length}
+            page={page}
+            onPageChange={(event, newPage) => setPage(newPage)}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={[10]}
+            sx={{
+              ".MuiTablePagination-select": {
+                color: "#d05c24",
+              },
+              ".MuiTablePagination-displayedRows": {
+                color: "#666",
+              },
+            }}
+          />
         </Paper>
 
         <Dialog

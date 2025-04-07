@@ -45,6 +45,8 @@ function HodPortal() {
   const [actionLoading, setActionLoading] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [currentTab, setCurrentTab] = useState(0);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage] = useState(10);
 
   useEffect(() => {
     fetchApprovedSubmissions();
@@ -74,6 +76,20 @@ function HodPortal() {
       setLoading(false);
     }
   };
+
+  const sortedApplications = useMemo(() => {
+    return [...applications].sort((a, b) => {
+      const statusPriority = {
+        Pending: 0,
+        Approved: 1,
+        Rejected: 2,
+      };
+      return (
+        statusPriority[a.hod_status || "Pending"] -
+        statusPriority[b.hod_status || "Pending"]
+      );
+    });
+  }, [applications]);
 
   const handleFileView = async (fileUrl) => {
     if (actionLoading) return;
@@ -476,82 +492,11 @@ function HodPortal() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {applications.map((app) => (
-                    <TableRow
-                      key={app.id}
-                      sx={{
-                        backgroundColor:
-                          app.status === "Approved"
-                            ? "#BDE7BD"
-                            : app.status === "Rejected"
-                            ? "#FF8E85"
-                            : app.status === "NOC ready"
-                            ? "#F7D2C4"
-                            : "inherit",
-                      }}
-                    >
-                      <TableCell>{app.registration_number}</TableCell>
-                      <TableCell>{app.name}</TableCell>
-
-                      <TableCell>{app.company_name}</TableCell>
-                      <TableCell>{app.offer_type}</TableCell>
-                      <TableCell>{app.offer_type_detail}</TableCell>
-                      <TableCell>
-                        {app.package_ppo ? `₹${app.package_ppo} LPA` : "-"}
-                      </TableCell>
-                      <TableCell>₹{app.stipend_amount}</TableCell>
-                      <TableCell>
-                        {new Date(
-                          app.internship_start_date
-                        ).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(app.internship_end_date).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        {app.offer_letter_path ? (
-                          offerLetterError ? (
-                            <Alert severity="error">{offerLetterError}</Alert>
-                          ) : (
-                            <Button
-                              onClick={() =>
-                                handleFileView(app.offer_letter_path)
-                              }
-                              sx={{
-                                textDecoration: "underline",
-                                color: "primary.main",
-                                fontSize: "12px",
-                              }}
-                            >
-                              View
-                            </Button>
-                          )
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {app.mail_copy_path ? (
-                          mailCopyError ? (
-                            <Alert severity="error">{mailCopyError}</Alert>
-                          ) : (
-                            <Button
-                              onClick={() => handleFileView(app.mail_copy_path)}
-                              sx={{
-                                textDecoration: "underline",
-                                color: "primary.main",
-                                fontSize: "12px",
-                              }}
-                            >
-                              View
-                            </Button>
-                          )
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-
-                      <TableCell
+                  {sortedApplications
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((app) => (
+                      <TableRow
+                        key={app.id}
                         sx={{
                           backgroundColor:
                             app.status === "Approved"
@@ -563,85 +508,178 @@ function HodPortal() {
                               : "inherit",
                         }}
                       >
-                        {app.status || "Pending"}
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: "flex", gap: 1 }}>
-                          <Button
-                            variant="contained"
-                            color="success"
-                            size="small"
-                            onClick={() => handleAction(app, "Approved")}
-                            disabled={isButtonDisabled(app) || actionLoading}
-                          >
-                            {actionLoading ? (
-                              <Box
+                        <TableCell>{app.registration_number}</TableCell>
+                        <TableCell>{app.name}</TableCell>
+
+                        <TableCell>{app.company_name}</TableCell>
+                        <TableCell>{app.offer_type}</TableCell>
+                        <TableCell>{app.offer_type_detail}</TableCell>
+                        <TableCell>
+                          {app.package_ppo ? `₹${app.package_ppo} LPA` : "-"}
+                        </TableCell>
+                        <TableCell>₹{app.stipend_amount}</TableCell>
+                        <TableCell>
+                          {new Date(
+                            app.internship_start_date
+                          ).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(
+                            app.internship_end_date
+                          ).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {app.offer_letter_path ? (
+                            offerLetterError ? (
+                              <Alert severity="error">{offerLetterError}</Alert>
+                            ) : (
+                              <Button
+                                onClick={() =>
+                                  handleFileView(app.offer_letter_path)
+                                }
                                 sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 1,
+                                  textDecoration: "underline",
+                                  color: "primary.main",
+                                  fontSize: "12px",
                                 }}
                               >
-                                <CircularProgress
-                                  size={20}
-                                  sx={{ color: "white" }}
-                                />
-                                <span>Processing...</span>
-                              </Box>
+                                View
+                              </Button>
+                            )
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {app.mail_copy_path ? (
+                            mailCopyError ? (
+                              <Alert severity="error">{mailCopyError}</Alert>
                             ) : (
-                              "Approve"
-                            )}
-                          </Button>
-                          <Button
-                            variant="contained"
-                            color="error"
-                            size="small"
-                            onClick={() => handleAction(app, "Rejected")}
-                            disabled={isButtonDisabled(app) || actionLoading}
-                          >
-                            {actionLoading ? (
-                              <Box
+                              <Button
+                                onClick={() =>
+                                  handleFileView(app.mail_copy_path)
+                                }
                                 sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 1,
+                                  textDecoration: "underline",
+                                  color: "primary.main",
+                                  fontSize: "12px",
                                 }}
                               >
-                                <CircularProgress
-                                  size={20}
-                                  sx={{ color: "white" }}
-                                />
-                                <span>Processing...</span>
-                              </Box>
-                            ) : (
-                              "Reject"
-                            )}
-                          </Button>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        {app.noc_path ? (
-                          <Button
-                            onClick={() => handleFileView(app.noc_path)}
-                            sx={{
-                              textDecoration: "underline",
-                              color: "primary.main",
-                              fontSize: "12px",
-                            }}
-                          >
-                            View NOC
-                          </Button>
-                        ) : app.status === "NOC Ready" ? (
-                          "NOC Ready"
-                        ) : (
-                          app.status || "Pending"
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                                View
+                              </Button>
+                            )
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+
+                        <TableCell
+                          sx={{
+                            backgroundColor:
+                              app.status === "Approved"
+                                ? "#BDE7BD"
+                                : app.status === "Rejected"
+                                ? "#FF8E85"
+                                : app.status === "NOC ready"
+                                ? "#F7D2C4"
+                                : "inherit",
+                          }}
+                        >
+                          {app.status || "Pending"}
+                        </TableCell>
+                        <TableCell>
+                          <Box sx={{ display: "flex", gap: 1 }}>
+                            <Button
+                              variant="contained"
+                              color="success"
+                              size="small"
+                              onClick={() => handleAction(app, "Approved")}
+                              disabled={isButtonDisabled(app) || actionLoading}
+                            >
+                              {actionLoading ? (
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1,
+                                  }}
+                                >
+                                  <CircularProgress
+                                    size={20}
+                                    sx={{ color: "white" }}
+                                  />
+                                  <span>Processing...</span>
+                                </Box>
+                              ) : (
+                                "Approve"
+                              )}
+                            </Button>
+                            <Button
+                              variant="contained"
+                              color="error"
+                              size="small"
+                              onClick={() => handleAction(app, "Rejected")}
+                              disabled={isButtonDisabled(app) || actionLoading}
+                            >
+                              {actionLoading ? (
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1,
+                                  }}
+                                >
+                                  <CircularProgress
+                                    size={20}
+                                    sx={{ color: "white" }}
+                                  />
+                                  <span>Processing...</span>
+                                </Box>
+                              ) : (
+                                "Reject"
+                              )}
+                            </Button>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          {app.noc_path ? (
+                            <Button
+                              onClick={() => handleFileView(app.noc_path)}
+                              sx={{
+                                textDecoration: "underline",
+                                color: "primary.main",
+                                fontSize: "12px",
+                              }}
+                            >
+                              View NOC
+                            </Button>
+                          ) : app.status === "NOC Ready" ? (
+                            "NOC Ready"
+                          ) : (
+                            app.status || "Pending"
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </TableContainer>
+            <TablePagination
+              component="div"
+              count={applications.length}
+              page={page}
+              onPageChange={(event, newPage) => setPage(newPage)}
+              rowsPerPage={rowsPerPage}
+              rowsPerPageOptions={[10]}
+              sx={{
+                ".MuiTablePagination-select": {
+                  color: "#d05c24",
+                },
+                ".MuiTablePagination-displayedRows": {
+                  color: "#666",
+                },
+              }}
+            />
           </Paper>
 
           <Dialog
