@@ -4,6 +4,8 @@ import { Download } from "lucide-react";
 import * as XLSX from "xlsx";
 import ProfileMenu from "./ProfileMenu";
 import { Tabs, Tab } from "@mui/material";
+import { useMemo } from 'react';
+import { TablePagination } from '@mui/material';
 import HodAnalytics from "./HodAnalytics";
 import {
   Container,
