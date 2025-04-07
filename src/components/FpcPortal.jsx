@@ -190,13 +190,11 @@ function FpcPortal() {
       Department: app?.department || "",
       "Company Name": app?.company_name || "",
       "Offer Type": app?.offer_type || "",
-      Stipend: app?.stipend || "",
-      "Internship Type": app?.internship_type || "",
-      "PPO Package": app?.ppo_package || "",
-      "Start Date": app?.start_date || "",
-      "End Date": app?.end_date || "",
-      Status: app?.status || "",
-      Comments: app?.comments || "",
+      "Internship Type": app?.offer_type_detail || "",
+      Stipend: app?.stipend_amount || "",
+      "PPO Package": app?.package_ppo || "",
+      "Start Date": app?.internship_start_date || "", // TODO 2025-10-10T00:00:00Z TO NORMAL DATE CONVENTION 2025-10-10
+      "End Date": app?.internship_end_date || "", // TODO 2025-10-10T00:00:00Z TO NORMAL DATE CONVENTION 2025-10-10
     }));
   
     console.log("Excel data to be downloaded:", excelData);

@@ -212,33 +212,39 @@ function HodPortal() {
   }
 
   const handleDownloadExcel = () => {
-    // Filter only NOC-ready submissions (approved by FPC)
+    // Debug: log all applications
+    console.log("All applications:", applications);
+  
     const nocReadySubmissions = applications.filter(
-      (app) => app.fpc_status === "Approved"
+      (app) => app.status?.toLowerCase() === "noc ready"
     );
-
-    // Prepare data for Excel
+    console.log("NOC Ready submissions:", nocReadySubmissions);
+  
     const excelData = nocReadySubmissions.map((app) => ({
-      "Registration Number": app.registration_number,
-      "Student Name": app.name,
-      Department: app.department,
-      Company: app.company_name,
-      "Offer Type": app.offer_type,
-      Stipend: app.stipend,
-      "Internship Type": app.internship_type,
-      "PPO Package": app.ppo_package,
-      "Start Date": app.start_date,
-      "End Date": app.end_date,
-      "FPC Comments": app.fpc_comments || "No comments",
+      "Registration Number": app?.registration_number || "",
+      "Student Name": app?.student_name || app?.name || "",
+      Department: app?.department || "",
+      "Company Name": app?.company_name || "",
+      "Offer Type": app?.offer_type || "",
+      "Internship Type": app?.offer_type_detail || "",
+      Stipend: app?.stipend_amount || "",
+      "PPO Package": app?.package_ppo || "",
+      "Start Date": app?.internship_start_date || "",  // TODO 2025-10-10T00:00:00Z TO NORMAL DATE CONVENTION 2025-10-10
+      "End Date": app?.internship_end_date || "",  // TODO 2025-10-10T00:00:00Z TO NORMAL DATE CONVENTION 2025-10-10
     }));
-
-    // Create worksheet
-    const ws = XLSX.utils.json_to_sheet(excelData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "NOC Ready Applications");
-
-    // Generate Excel file
-    XLSX.writeFile(wb, "noc_ready_applications.xlsx");
+  
+    console.log("Excel data to be downloaded:", excelData);
+  
+    try {
+      const ws = XLSX.utils.json_to_sheet(excelData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "NOC Ready Applications");
+  
+      XLSX.writeFile(wb, "noc_ready_applications.xlsx");
+    } catch (error) {
+      console.error("Error generating Excel:", error);
+      alert("Error generating Excel file. Check console for more info.");
+    }
   };
 
   return (
