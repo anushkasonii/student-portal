@@ -59,10 +59,6 @@ function ForgotPassword() {
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    if (!email.endsWith('@manipal.edu')) {
-      setError('Please use your Manipal email address');
-      return;
-    }
     setLoading(true);
     setError('');
     try {

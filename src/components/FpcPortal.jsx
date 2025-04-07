@@ -250,6 +250,16 @@ function FpcPortal() {
             maxHeight: "90vh",
           }}
         >
+          <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                mb: 1,
+                width: "100%", // Added width
+                px: 3,
+              }}
+            >
           <Typography
             variant="h4"
             gutterBottom
@@ -265,19 +275,22 @@ function FpcPortal() {
             FPC Portal - Student Applications
           </Typography>
 
-          <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+         
             <Button
               variant="contained"
               startIcon={<Download size={20} />}
               onClick={handleDownloadExcel}
               sx={{
+                marginBottom: 4,
+                  position: "absolute",
+                  right: 29,
                 backgroundColor: "#d05c24",
                 "&:hover": {
                   backgroundColor: "#bf4e1f",
                 },
               }}
             >
-              Download Approved Applications
+              Download 
             </Button>
           </Box>
 

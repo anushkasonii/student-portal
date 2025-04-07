@@ -4,8 +4,8 @@ import { Download } from "lucide-react";
 import * as XLSX from "xlsx";
 import ProfileMenu from "./ProfileMenu";
 import { Tabs, Tab } from "@mui/material";
-import { useMemo } from 'react';
-import { TablePagination } from '@mui/material';
+import { useMemo } from "react";
+import { TablePagination } from "@mui/material";
 import HodAnalytics from "./HodAnalytics";
 import {
   Container,
@@ -263,7 +263,7 @@ function HodPortal() {
         value={currentTab}
         onChange={handleTabChange}
         sx={{
-          mb: 3,
+          mb: 2,
           "& .MuiTab-root": {
             color: "#666",
             "&.Mui-selected": {
@@ -285,7 +285,7 @@ function HodPortal() {
           sx={{
             height: "100%",
             width: "100vw",
-            py: 4,
+            py: 2,
             px: 3,
             display: "flex",
             justifyContent: "center",
@@ -309,33 +309,46 @@ function HodPortal() {
               maxHeight: "100%",
             }}
           >
-            <Typography
-              variant="h4"
-              gutterBottom
+            <Box
               sx={{
-                mb: 4,
-                fontWeight: "bold",
-                textAlign: "center",
-                color: "#d05c24",
-                fontSize: "2.1rem",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                mb: 1,
+                width: "100%", // Added width
+                px: 3,
               }}
             >
-              HOD Portal - Application Review
-            </Typography>
+              <Typography
+                variant="h4"
+                gutterBottom
+                sx={{
+                  mb: 4,
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  color: "#d05c24",
+                  fontSize: "2.1rem",
+                }}
+              >
+                HOD Portal - Application Review
+              </Typography>
 
-            <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
               <Button
                 variant="contained"
                 startIcon={<Download size={20} />}
                 onClick={handleDownloadExcel}
                 sx={{
+                  marginBottom: 4,
+                  position: "absolute",
+                  right: 29,
+
                   backgroundColor: "#d05c24",
                   "&:hover": {
                     backgroundColor: "#bf4e1f",
                   },
                 }}
               >
-                Download NOC Ready Applications
+                Download
               </Button>
             </Box>
             {error && (
