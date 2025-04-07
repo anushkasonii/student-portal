@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { loginAdmin, loginHod, loginFpc } from "../services/api";
 import { CircularProgress, IconButton, InputAdornment } from "@mui/material";
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
+import { Link } from 'react-router-dom';
 import logo from "./muj_header.png";
 import {
   Container,
@@ -279,6 +280,20 @@ function Login() {
                     },
                   }}
                 />
+                <Box sx={{ textAlign: 'right', mt: 1, mb: 2 }}>
+  <Link
+    to="/forgot-password"
+    style={{
+      color: '#d05c24',
+      textDecoration: 'none',
+      '&:hover': {
+        textDecoration: 'underline'
+      }
+    }}
+  >
+    Forgot Password?
+  </Link>
+</Box>
 
                 <Button
                   type="submit"

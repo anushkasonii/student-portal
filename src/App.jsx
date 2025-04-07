@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminPortal from "./components/AdminPortal";
 import SuccessPage from "./components/SuccessPage";
 import HomePage from "./components/HomePage";
+import ForgotPassword from './components/ForgotPassword';
 
 function App() {
   console.log("App working...");
@@ -16,6 +17,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/student-form" element={<StudentForm />} />
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/login" element={<Login />} />

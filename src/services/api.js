@@ -286,6 +286,15 @@ export const deleteFpc = async (id) => {
 };
 
 
+export const sendPasswordResetEmail = async (data) => {
+  const response = await mainApi.post('/auth/forgot-password', data);
+  return response.data;
+};
+
+export const resetPassword = async (data) => {
+  const response = await mainApi.post('/auth/reset-password', data);
+  return response.data;
+};
 
 export const logout = async () => {
   const token = localStorage.getItem('token');
