@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Key, Lock } from 'lucide-react';
-import { sendPasswordResetEmail, resetPassword } from '../services/api';
+import { sendOtpToEmail, verifyEmailOtp, resetPassword } from '../services/api';
 import logo from './muj_header.png';
 
 function ForgotPassword() {
@@ -62,12 +62,27 @@ function ForgotPassword() {
     setLoading(true);
     setError('');
     try {
-      await sendPasswordResetEmail({ email });
+      await sendOtpToEmail(email); // Use sendOtpToEmail function
       setStep(1);
       setOtpTimer(300); // 5 minutes
       setSuccess('OTP sent to your email');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      await verifyEmailOtp({ email, otp }); // Use verifyEmailOtp function
+      setStep(2);
+      setSuccess('OTP verified successfully');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid OTP');
     } finally {
       setLoading(false);
     }
@@ -189,10 +204,7 @@ function ForgotPassword() {
           )}
 
           {step === 1 && (
-            <Box component="form" onSubmit={(e) => {
-              e.preventDefault();
-              setStep(2);
-            }}>
+            <Box component="form" onSubmit={handleVerifyOtp}>
               <TextField
                 fullWidth
                 label="Enter OTP"
@@ -225,10 +237,11 @@ function ForgotPassword() {
                   '&:hover': { backgroundColor: '#bf4e1f' },
                 }}
               >
-                Verify OTP
+                {loading ? <CircularProgress size={24} /> : 'Verify OTP'}
               </Button>
             </Box>
           )}
+
 
           {step === 2 && (
             <Box component="form" onSubmit={handleResetPassword}>
