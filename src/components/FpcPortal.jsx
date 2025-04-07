@@ -176,17 +176,15 @@ function FpcPortal() {
   }
 
   const handleDownloadExcel = () => {
-    // Add console.log to debug
+    // Debug: log all applications
     console.log("All applications:", applications);
-
-    // Filter only approved submissions
-    const approvedSubmissions = applications.filter(
-      (app) => app.status === "Approved"
+  
+    const nocReadySubmissions = applications.filter(
+      (app) => app.status?.toLowerCase() === "noc ready"
     );
-    console.log("Approved submissions:", approvedSubmissions);
-
-    // Prepare data for Excel with null checks
-    const excelData = approvedSubmissions.map((app) => ({
+    console.log("NOC Ready submissions:", nocReadySubmissions);
+  
+    const excelData = nocReadySubmissions.map((app) => ({
       "Registration Number": app?.registration_number || "",
       "Student Name": app?.student_name || app?.name || "",
       Department: app?.department || "",
@@ -200,22 +198,21 @@ function FpcPortal() {
       Status: app?.status || "",
       Comments: app?.comments || "",
     }));
-
-    console.log("Excel data:", excelData);
-
-    // Create worksheet with error handling
+  
+    console.log("Excel data to be downloaded:", excelData);
+  
     try {
       const ws = XLSX.utils.json_to_sheet(excelData);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Approved Applications");
-
-      // Generate Excel file
-      XLSX.writeFile(wb, "approved_applications.xlsx");
+      XLSX.utils.book_append_sheet(wb, ws, "NOC Ready Applications");
+  
+      XLSX.writeFile(wb, "noc_ready_applications.xlsx");
     } catch (error) {
       console.error("Error generating Excel:", error);
-      alert("Error generating Excel file");
+      alert("Error generating Excel file. Check console for more info.");
     }
   };
+  
 
   return (
     <Box
