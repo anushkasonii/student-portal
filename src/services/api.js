@@ -5,9 +5,9 @@ import { getIdFromToken } from "../utils/authUtils";
 // const SUBMISSION_SERVICE_URL = 'https://temp.6513.in/';
 // const MAIN_SERVICE_URL = 'https://temp.6513.in/';
 // const FILES_BASE_URL = 'https://temp.6513.in/files';
-const SUBMISSION_SERVICE_URL = 'http://10.164.140.86:8001/';
-const MAIN_SERVICE_URL = 'http://10.164.140.86:8002/';
-const FILES_BASE_URL = 'http://10.164.140.86:8002/files';
+const SUBMISSION_SERVICE_URL = 'http://localhost:8001/';
+const MAIN_SERVICE_URL = 'http://localhost:8002/';
+const FILES_BASE_URL = 'http://localhost:8002/files';
 
 
 
@@ -314,6 +314,46 @@ export const getFileUrl = (filepath) => {
   };
 };
 
+export const updateFpc = async (fpcData) => {
+  try {
+    const response = await mainApi.patch('/fpc', {
+      name: fpcData.name,
+      email: fpcData.email,
+      password: fpcData.password,
+      app_password: fpcData.app_password,
+      department: fpcData.department,
+    }, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating FPC:', error);
+    throw error;
+  }
+};
 
+export const updateHod = async (hodData) => {
+  try {
+    const response = await mainApi.patch('/hod', {
+      name: hodData.name,
+      email: hodData.email,
+      password: hodData.password,
+      app_password: hodData.app_password,
+      department: hodData.department,
+    }, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating HOD:', error);
+    throw error;
+  }
+};
 
 export { submissionApi, mainApi };
