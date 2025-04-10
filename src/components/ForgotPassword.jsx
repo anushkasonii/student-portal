@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Key, Lock } from 'lucide-react';
-import { sendPasswordResetEmail, resetPassword } from '../services/api';
+import { sendOtpToEmail, verifyEmailOtp, updateFpc, updateHod, getFpcs, getHods } from '../services/api';
 import logo from './muj_header.png';
 
 function ForgotPassword() {
@@ -49,12 +49,12 @@ function ForgotPassword() {
     const hasNumbers = /\d/.test(password);
     const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
-    if (password.length < minLength) return "Password must be at least 8 characters";
-    if (!hasUpperCase) return "Password must contain an uppercase letter";
-    if (!hasLowerCase) return "Password must contain a lowercase letter";
-    if (!hasNumbers) return "Password must contain a number";
-    if (!hasSpecialChar) return "Password must contain a special character";
-    return "";
+    if (password.length < minLength) return 'Password must be at least 8 characters';
+    if (!hasUpperCase) return 'Password must contain an uppercase letter';
+    if (!hasLowerCase) return 'Password must contain a lowercase letter';
+    if (!hasNumbers) return 'Password must contain a number';
+    if (!hasSpecialChar) return 'Password must contain a special character';
+    return '';
   };
 
   const handleSendOtp = async (e) => {
@@ -62,12 +62,27 @@ function ForgotPassword() {
     setLoading(true);
     setError('');
     try {
-      await sendPasswordResetEmail({ email });
+      await sendOtpToEmail(email);
       setStep(1);
       setOtpTimer(300); // 5 minutes
       setSuccess('OTP sent to your email');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      await verifyEmailOtp({ email, otp });
+      setStep(2);
+      setSuccess('OTP verified successfully');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid OTP');
     } finally {
       setLoading(false);
     }
@@ -87,11 +102,31 @@ function ForgotPassword() {
     setLoading(true);
     setError('');
     try {
-      await resetPassword({ email, otp, newPassword });
+      let userId = null;
+
+      // Fetch the user's data from the backend
+      const fpcResponse = await getFpcs();
+      const fpc = fpcResponse.find((user) => user.email === email);
+
+      if (fpc) {
+        userId = fpc.id;
+        await updateFpc({ id: userId, password: newPassword });
+      } else {
+        const hodResponse = await getHods();
+        const hod = hodResponse.find((user) => user.email === email);
+
+        if (hod) {
+          userId = hod.id;
+          await updateHod({ id: userId, password: newPassword });
+        } else {
+          throw new Error('User not found with the provided email');
+        }
+      }
+
       setSuccess('Password reset successful! Redirecting to login...');
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to reset password');
+      setError(err.response?.data?.message || err.message || 'Failed to reset password');
     } finally {
       setLoading(false);
     }
@@ -189,10 +224,7 @@ function ForgotPassword() {
           )}
 
           {step === 1 && (
-            <Box component="form" onSubmit={(e) => {
-              e.preventDefault();
-              setStep(2);
-            }}>
+            <Box component="form" onSubmit={handleVerifyOtp}>
               <TextField
                 fullWidth
                 label="Enter OTP"
@@ -210,7 +242,8 @@ function ForgotPassword() {
               />
               {otpTimer > 0 && (
                 <Typography variant="caption" color="textSecondary">
-                  OTP expires in: {Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}
+                  OTP expires in: {Math.floor(otpTimer / 60)}:
+                  {(otpTimer % 60).toString().padStart(2, '0')}
                 </Typography>
               )}
               <Button
@@ -225,7 +258,7 @@ function ForgotPassword() {
                   '&:hover': { backgroundColor: '#bf4e1f' },
                 }}
               >
-                Verify OTP
+                {loading ? <CircularProgress size={24} /> : 'Verify OTP'}
               </Button>
             </Box>
           )}
@@ -235,7 +268,7 @@ function ForgotPassword() {
               <TextField
                 fullWidth
                 label="New Password"
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 margin="normal"
@@ -248,7 +281,9 @@ function ForgotPassword() {
                   ),
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton onClick={() => setShowPassword(!showPassword)}>
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                       </IconButton>
                     </InputAdornment>
@@ -258,7 +293,7 @@ function ForgotPassword() {
               <TextField
                 fullWidth
                 label="Confirm Password"
-                type={showConfirmPassword ? "text" : "password"}
+                type={showConfirmPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 margin="normal"
@@ -271,8 +306,16 @@ function ForgotPassword() {
                   ),
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      <IconButton
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff size={20} />
+                        ) : (
+                          <Eye size={20} />
+                        )}
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -300,7 +343,10 @@ function ForgotPassword() {
             sx={{
               mt: 2,
               color: '#d05c24',
-              '&:hover': { backgroundColor: 'transparent', textDecoration: 'underline' },
+              '&:hover': {
+                backgroundColor: 'transparent',
+                textDecoration: 'underline',
+              },
             }}
           >
             Back to Login

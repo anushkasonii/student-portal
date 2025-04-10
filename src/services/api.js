@@ -179,11 +179,10 @@ export const getApprovedSubmissions = async (nocType) => {
 // Admin endpoints
 export const getHods = async () => {
   try {
-    const response = await mainApi.get('/admin/hods', {
+    const response = await mainApi.get('/hods', {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     });
     return response.data || []; // Ensure we return an empty array if no data
   } catch (error) {
@@ -192,14 +191,12 @@ export const getHods = async () => {
   }
 };
 
-
 export const getFpcs = async () => {
   try {
-    const response = await mainApi.get('/admin/fpcs', {
+    const response = await mainApi.get('/fpcs', {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     });
     return response.data || []; // Ensure we return an empty array if no data
   } catch (error) {
@@ -323,44 +320,34 @@ export const getFileUrl = (filepath) => {
   };
 };
 
-export const updateFpc = async (fpcData) => {
+export const updateHod = async (hodData) => {
   try {
-    const response = await mainApi.patch('/fpc', {
-      name: fpcData.name,
-      email: fpcData.email,
-      password: fpcData.password,
-      app_password: fpcData.app_password,
-      department: fpcData.department,
+    const response = await mainApi.patch(`/hod?id=${hodData.id}`, {
+      password: hodData.password,
     }, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
         'Content-Type': 'application/json',
       },
     });
     return response.data;
   } catch (error) {
-    console.error('Error updating FPC:', error);
+    console.error('Error updating HOD password:', error);
     throw error;
   }
 };
 
-export const updateHod = async (hodData) => {
+export const updateFpc = async (fpcData) => {
   try {
-    const response = await mainApi.patch('/hod', {
-      name: hodData.name,
-      email: hodData.email,
-      password: hodData.password,
-      app_password: hodData.app_password,
-      department: hodData.department,
+    const response = await mainApi.patch(`/fpc?id=${fpcData.id}`, {
+      password: fpcData.password,
     }, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
         'Content-Type': 'application/json',
       },
     });
     return response.data;
   } catch (error) {
-    console.error('Error updating HOD:', error);
+    console.error('Error updating FPC password:', error);
     throw error;
   }
 };
