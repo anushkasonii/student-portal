@@ -318,6 +318,9 @@ function AdminPortal() {
                     Email
                   </TableCell>
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Department
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                     Actions
                   </TableCell>
                 </TableRow>
@@ -327,6 +330,7 @@ function AdminPortal() {
                   <TableRow key={hod.id}>
                     <TableCell>{hod.name}</TableCell>
                     <TableCell>{hod.email}</TableCell>
+                    <TableCell>{hod.department}</TableCell>
                     <TableCell>
                       <Button
                         variant="contained"
@@ -370,6 +374,9 @@ function AdminPortal() {
                     Email
                   </TableCell>
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Department
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                     Actions
                   </TableCell>
                 </TableRow>
@@ -379,6 +386,7 @@ function AdminPortal() {
                   <TableRow key={fpc.id}>
                     <TableCell>{fpc.name}</TableCell>
                     <TableCell>{fpc.email}</TableCell>
+                    <TableCell>{fpc.department}</TableCell>
                     <TableCell>
                       <Button
                         variant="contained"
