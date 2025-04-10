@@ -21,6 +21,8 @@ function App() {
         <Route path="/student-form" element={<StudentForm />} />
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/login" element={<Login />} />
+
+
         <Route
           path="/fpc"
           element={
@@ -30,6 +32,7 @@ function App() {
           }
         />
 
+{/* <Route path="/fpc" element={<FpcPortal />} /> */}
 
         <Route
           path="/hod"
@@ -40,6 +43,7 @@ function App() {
           }
         />
 
+{/* <Route path="/hod" element={<HodPortal />} /> */}
         
 
         <Route

@@ -72,7 +72,7 @@ function HodPortal() {
       }
       setError("");
     } catch (error) {
-      setError("Failed to fetch submissions");
+      setError("No submissions found");
       console.error("Error fetching submissions:", error);
     } finally {
       setLoading(false);

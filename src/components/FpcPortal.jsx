@@ -52,7 +52,7 @@ function FpcPortal() {
       setApplications(Array.isArray(response) ? response : []);
       setError("");
     } catch (error) {
-      setError(error.message || "Failed to fetch submissions");
+      setError(error.message || "No submissions found");
       console.error("Error fetching submissions:", error);
       setApplications([]); // Set empty array on error
     } finally {
