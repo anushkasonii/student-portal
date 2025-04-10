@@ -158,7 +158,7 @@ function ForgotPassword() {
             <Box component="form" onSubmit={handleSendOtp}>
               <TextField
                 fullWidth
-                label="Manipal Email"
+                label="Email ID"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 margin="normal"
