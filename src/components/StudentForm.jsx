@@ -136,17 +136,15 @@ function StudentForm() {
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const validateFile = (file, isRequired = false) => {
-    if (isRequired && !file) return "File is required";
-    if (file) {
-      if (!file.type.includes("pdf")) return "File must be a PDF";
-      if (file.size > 5 * 1024 * 1024) return "File size must be less than 5MB";
-
-      const fileName = file.name;
-      if (fileName.includes(" ")) return "File name should not contain spaces";
-    }
-    return "";
-  };
+const validateFile = (file, isRequired = false) => {
+  if (isRequired && !file) return "File is required";
+  if (file) {
+    if (!file.type.includes("pdf")) return "File must be a PDF";
+    if (file.size > 5 * 1024 * 1024) return "File size must be less than 5MB";
+    if (file.name.includes(" ")) return "File name should not contain spaces";
+  }
+  return "";
+};
 
   const NOC_TYPE_INFO = {
     Specific:
@@ -842,7 +840,7 @@ function StudentForm() {
                   {formik.values.nocType === "Specific" && (
                     <Grid item xs={12} sm={6}>
                       <Typography variant="subtitle1" gutterBottom>
-                        Offer Letter (PDF only, required for Specific NOC)
+                        Offer Letter (PDF with no spaces required)
                       </Typography>
                       <input
                         accept="application/pdf"
@@ -851,6 +849,15 @@ function StudentForm() {
                         required={formik.values.nocType === "Specific"}
                         disabled={!emailVerified}
                       />
+                      {fileError && (
+                        <Typography
+                          color="error"
+                          variant="caption"
+                          sx={{ display: "block", mt: 1, ml: 2 }}
+                        >
+                          {fileError}
+                        </Typography>
+                      )}
                     </Grid>
                   )}
                   <Grid item xs={12} sm={6}>
@@ -864,6 +871,15 @@ function StudentForm() {
                       required
                       disabled={!emailVerified}
                     />
+                    {fileError && (
+                      <Typography
+                        color="error"
+                        variant="caption"
+                        sx={{ display: "block", mt: 1, ml: 2 }}
+                      >
+                        {fileError}
+                      </Typography>
+                    )}
                   </Grid>
                 </Grid>
               </Grid>
