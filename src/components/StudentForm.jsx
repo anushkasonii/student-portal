@@ -20,6 +20,8 @@ import {
   sendOtpToEmail,
   verifyEmailOtp,
 } from "../services/api";
+import InfoIcon from "@mui/icons-material/Info";
+import Tooltip from "@mui/material/Tooltip";
 import { useNavigate } from "react-router-dom";
 
 const validationSchema = yup
@@ -146,6 +148,13 @@ function StudentForm() {
     return "";
   };
 
+  const NOC_TYPE_INFO = {
+    Specific:
+      "For company-specific internships. Requires both mail copy and offer letter from the company.",
+    Generic:
+      "For summer internships only. Used when either no offer letter is available or a general NOC is needed.",
+  };
+
   const formik = useFormik({
     initialValues: {
       registrationNumber: "",
@@ -250,8 +259,7 @@ function StudentForm() {
         setSubmissionStatus(
           error.response?.data?.message || "Failed to submit application"
         );
-      }
-      finally {
+      } finally {
         setIsSubmitting(false); // Reset loading state
       }
     },
@@ -259,19 +267,18 @@ function StudentForm() {
 
   // File handlers
   const handleOfferLetterChange = (event) => {
-    try{
-    const file = event.target.files[0];
-    const error = validateFile(file, formik.values.nocType === "Specific");
-    if (error) {
-      setFileError(error);
-      return;
+    try {
+      const file = event.target.files[0];
+      const error = validateFile(file, formik.values.nocType === "Specific");
+      if (error) {
+        setFileError(error);
+        return;
+      }
+      setOfferLetter(file);
+      setFileError("");
+    } catch (error) {
+      setFileError("Error processing file. Please try again.");
     }
-    setOfferLetter(file);
-    setFileError("");
-  } catch (error) {
-    setFileError("Error processing file. Please try again."
-    );
-  }
   };
 
   const handleMailCopyChange = (event) => {
@@ -494,7 +501,9 @@ function StudentForm() {
                   }
                   disabled={!emailVerified}
                 >
-                  <MenuItem value="CSE">Computer Science and Engineering</MenuItem>
+                  <MenuItem value="CSE">
+                    Computer Science and Engineering
+                  </MenuItem>
                   <MenuItem value="IT">Information Technology</MenuItem>
                 </TextField>
               </Grid>
@@ -570,8 +579,18 @@ function StudentForm() {
                   helperText={formik.touched.nocType && formik.errors.nocType}
                   disabled={!emailVerified}
                 >
-                  <MenuItem value="Specific">Specific</MenuItem>
-                  <MenuItem value="Generic">Generic </MenuItem>
+                  <MenuItem value="Specific">
+                    Specific
+                    <Tooltip title={NOC_TYPE_INFO.Specific} placement="right">
+                      <InfoIcon sx={{ ml: 1, fontSize: 16, color: "#666" }} />
+                    </Tooltip>
+                  </MenuItem>
+                  <MenuItem value="Generic">
+                    Generic
+                    <Tooltip title={NOC_TYPE_INFO.Generic} placement="right">
+                      <InfoIcon sx={{ ml: 1, fontSize: 16, color: "#666" }} />
+                    </Tooltip>
+                  </MenuItem>
                 </TextField>
               </Grid>
 
