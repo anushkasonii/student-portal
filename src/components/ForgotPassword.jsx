@@ -1,31 +1,38 @@
-import React, { useState, useEffect } from 'react';
 import {
-  Container,
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  Box,
   Alert,
+  Box,
+  Button,
   CircularProgress,
-  Stepper,
-  Step,
-  StepLabel,
+  Container,
   IconButton,
   InputAdornment,
-} from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Key, Lock } from 'lucide-react';
-import { sendOtpToEmail, verifyEmailOtp, updateFpc, updateHod, getFpcs, getHods } from '../services/api';
-import logo from './muj_header.png';
+  Paper,
+  Step,
+  StepLabel,
+  Stepper,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { Eye, EyeOff, Key, Lock, Mail } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  getFpcs,
+  getHods,
+  sendOtpToEmail,
+  updateFpc,
+  updateHod,
+  verifyEmailOtp,
+} from "../services/api";
+import logo from "./muj_header.png";
 
 function ForgotPassword() {
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
@@ -33,7 +40,7 @@ function ForgotPassword() {
   const [otpTimer, setOtpTimer] = useState(0);
   const navigate = useNavigate();
 
-  const steps = ['Enter Email', 'Verify OTP', 'Reset Password'];
+  const steps = ["Enter Email", "Verify OTP", "Reset Password"];
 
   useEffect(() => {
     if (otpTimer > 0) {
@@ -42,32 +49,32 @@ function ForgotPassword() {
     }
   }, [otpTimer]);
 
-  const validatePassword = (password) => {
-    const minLength = 8;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  // const validatePassword = (password) => {
+  //   const minLength = 8;
+  //   const hasUpperCase = /[A-Z]/.test(password);
+  //   const hasLowerCase = /[a-z]/.test(password);
+  //   const hasNumbers = /\d/.test(password);
+  //   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
-    if (password.length < minLength) return 'Password must be at least 8 characters';
-    if (!hasUpperCase) return 'Password must contain an uppercase letter';
-    if (!hasLowerCase) return 'Password must contain a lowercase letter';
-    if (!hasNumbers) return 'Password must contain a number';
-    if (!hasSpecialChar) return 'Password must contain a special character';
-    return '';
-  };
+  //   if (password.length < minLength) return 'Password must be at least 8 characters';
+  //   if (!hasUpperCase) return 'Password must contain an uppercase letter';
+  //   if (!hasLowerCase) return 'Password must contain a lowercase letter';
+  //   if (!hasNumbers) return 'Password must contain a number';
+  //   if (!hasSpecialChar) return 'Password must contain a special character';
+  //   return '';
+  // };
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
     try {
       await sendOtpToEmail(email);
       setStep(1);
       setOtpTimer(300); // 5 minutes
-      setSuccess('OTP sent to your email');
+      setSuccess("OTP sent to your email");
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send OTP');
+      setError(err.response?.data?.message || "Failed to send OTP");
     } finally {
       setLoading(false);
     }
@@ -76,13 +83,13 @@ function ForgotPassword() {
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
     try {
       await verifyEmailOtp({ email, otp });
       setStep(2);
-      setSuccess('OTP verified successfully');
+      setSuccess("OTP verified successfully");
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid OTP');
+      setError(err.response?.data?.message || "Invalid OTP");
     } finally {
       setLoading(false);
     }
@@ -90,17 +97,17 @@ function ForgotPassword() {
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    const passwordError = validatePassword(newPassword);
-    if (passwordError) {
-      setError(passwordError);
-      return;
-    }
+    // const passwordError = validatePassword(newPassword);
+    // if (passwordError) {
+    //   setError(passwordError);
+    //   return;
+    // }
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
     setLoading(true);
-    setError('');
+    setError("");
     try {
       let userId = null;
 
@@ -119,14 +126,16 @@ function ForgotPassword() {
           userId = hod.id;
           await updateHod({ id: userId, password: newPassword });
         } else {
-          throw new Error('User not found with the provided email');
+          throw new Error("User not found with the provided email");
         }
       }
 
-      setSuccess('Password reset successful! Redirecting to login...');
-      setTimeout(() => navigate('/login'), 2000);
+      setSuccess("Password reset successful! Redirecting to login...");
+      setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to reset password');
+      setError(
+        err.response?.data?.message || err.message || "Failed to reset password"
+      );
     } finally {
       setLoading(false);
     }
@@ -135,18 +144,18 @@ function ForgotPassword() {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
-        width: '100vw',
-        display: 'flex',
-        background: 'linear-gradient(45deg, #f5f7fa 0%, #ffffff 100%)',
+        minHeight: "100vh",
+        width: "100vw",
+        display: "flex",
+        background: "linear-gradient(45deg, #f5f7fa 0%, #ffffff 100%)",
       }}
     >
-      <Container maxWidth="sm" sx={{ my: 'auto' }}>
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
+      <Container maxWidth="sm" sx={{ my: "auto" }}>
+        <Box sx={{ mb: 4, textAlign: "center" }}>
           <img
             src={logo}
             alt="Manipal University Jaipur"
-            style={{ width: '250px', marginBottom: '1rem' }}
+            style={{ width: "250px", marginBottom: "1rem" }}
           />
         </Box>
 
@@ -155,17 +164,17 @@ function ForgotPassword() {
           sx={{
             p: 4,
             borderRadius: 3,
-            backgroundColor: '#ffffff',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.04)',
-            position: 'relative',
-            '&::before': {
+            backgroundColor: "#ffffff",
+            boxShadow: "0 10px 40px rgba(0,0,0,0.04)",
+            position: "relative",
+            "&::before": {
               content: '""',
-              position: 'absolute',
+              position: "absolute",
               top: 0,
               left: 0,
               right: 0,
-              height: '4px',
-              background: 'linear-gradient(90deg, #d05c24, #f17d4a)',
+              height: "4px",
+              background: "linear-gradient(90deg, #d05c24, #f17d4a)",
             },
           }}
         >
@@ -214,11 +223,11 @@ function ForgotPassword() {
                 sx={{
                   mt: 3,
                   py: 1.5,
-                  backgroundColor: '#d05c24',
-                  '&:hover': { backgroundColor: '#bf4e1f' },
+                  backgroundColor: "#d05c24",
+                  "&:hover": { backgroundColor: "#bf4e1f" },
                 }}
               >
-                {loading ? <CircularProgress size={24} /> : 'Send OTP'}
+                {loading ? <CircularProgress size={24} /> : "Send OTP"}
               </Button>
             </Box>
           )}
@@ -243,7 +252,7 @@ function ForgotPassword() {
               {otpTimer > 0 && (
                 <Typography variant="caption" color="textSecondary">
                   OTP expires in: {Math.floor(otpTimer / 60)}:
-                  {(otpTimer % 60).toString().padStart(2, '0')}
+                  {(otpTimer % 60).toString().padStart(2, "0")}
                 </Typography>
               )}
               <Button
@@ -254,11 +263,11 @@ function ForgotPassword() {
                 sx={{
                   mt: 3,
                   py: 1.5,
-                  backgroundColor: '#d05c24',
-                  '&:hover': { backgroundColor: '#bf4e1f' },
+                  backgroundColor: "#d05c24",
+                  "&:hover": { backgroundColor: "#bf4e1f" },
                 }}
               >
-                {loading ? <CircularProgress size={24} /> : 'Verify OTP'}
+                {loading ? <CircularProgress size={24} /> : "Verify OTP"}
               </Button>
             </Box>
           )}
@@ -268,7 +277,7 @@ function ForgotPassword() {
               <TextField
                 fullWidth
                 label="New Password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 margin="normal"
@@ -284,7 +293,11 @@ function ForgotPassword() {
                       <IconButton
                         onClick={() => setShowPassword(!showPassword)}
                       >
-                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        {showPassword ? (
+                          <EyeOff size={20} />
+                        ) : (
+                          <Eye size={20} />
+                        )}
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -293,7 +306,7 @@ function ForgotPassword() {
               <TextField
                 fullWidth
                 label="Confirm Password"
-                type={showConfirmPassword ? 'text' : 'password'}
+                type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 margin="normal"
@@ -329,23 +342,23 @@ function ForgotPassword() {
                 sx={{
                   mt: 3,
                   py: 1.5,
-                  backgroundColor: '#d05c24',
-                  '&:hover': { backgroundColor: '#bf4e1f' },
+                  backgroundColor: "#d05c24",
+                  "&:hover": { backgroundColor: "#bf4e1f" },
                 }}
               >
-                {loading ? <CircularProgress size={24} /> : 'Reset Password'}
+                {loading ? <CircularProgress size={24} /> : "Reset Password"}
               </Button>
             </Box>
           )}
 
           <Button
-            onClick={() => navigate('/login')}
+            onClick={() => navigate("/login")}
             sx={{
               mt: 2,
-              color: '#d05c24',
-              '&:hover': {
-                backgroundColor: 'transparent',
-                textDecoration: 'underline',
+              color: "#d05c24",
+              "&:hover": {
+                backgroundColor: "transparent",
+                textDecoration: "underline",
               },
             }}
           >
