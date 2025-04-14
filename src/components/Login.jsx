@@ -53,26 +53,62 @@ function Login() {
     for (const { fn, role, path } of loginFunctions) {
       try {
         const response = await fn(credentials);
-        // If login succeeds, set the tokens and navigate
-        localStorage.setItem("token", response.token);
-        localStorage.setItem("userRole", role);
-        localStorage.setItem("userId", response.id);
-        if (response.roleType) {
-          localStorage.setItem("roleType", response.roleType);
+        
+        // Validate response structure
+        if (!response || !response.token || !response.id) {
+          throw new Error("Invalid response from server");
         }
-        localStorage.setItem("isAuthenticated", "true");
+
+        // Store all authentication and user data from the response
+        const authData = {
+          token: response.token,
+          userRole: role,
+          userId: response.id,
+          roleType: response.roleType || role,
+          isAuthenticated: 'true',
+          // Additional user information from backend
+          name: response.name || '',
+          email: response.email || formData.email,
+          department: response.department || '',
+          office: response.office || '',
+          // Store any additional role-specific data
+          ...(role === 'hod' && { department: response.department || '' }),
+          ...(role === 'fpc' && { 
+            department: response.department || '',
+            office: response.office || ''
+          })
+        };
+        
+        // Set all authentication data
+        Object.entries(authData).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            localStorage.setItem(key, value);
+          }
+        });
+        
         loginSuccessful = true;
+        setLoading(false); // Reset loading state before navigation
         navigate(path);
         break;
       } catch (err) {
         console.error(`Failed login for ${role}:`, err);
+        // Show specific error message from backend if available
+        if (err.response?.data?.message) {
+          setError(err.response.data.message);
+        } else if (err.response?.status === 401) {
+          setError("Invalid credentials. Please try again.");
+        } else if (err.message === "Invalid response from server") {
+          setError("Server returned invalid response. Please try again.");
+        } else if (role === 'fpc') {
+          setError("Login failed. Please check your credentials and try again.");
+        }
         continue;
       }
     }
 
     if (!loginSuccessful) {
-      setError("Invalid credentials. Please try again.");
       setLoading(false);
+      setError("Login failed. Please check your credentials and try again.");
     }
   };
 

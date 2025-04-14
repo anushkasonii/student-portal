@@ -51,30 +51,16 @@ const mainApi = axios.create({
 // Auth endpoints
 export const loginFpc = async (credentials) => {
   const response = await mainApi.post('/fpc/login', credentials);
-  localStorage.setItem('token', response.data.token);
-  localStorage.setItem('userRole', 'fpc');
-  localStorage.setItem('userId', response.data.id);
-  localStorage.setItem('roleType', response.data.roleType);
   return response.data;
 };
 
 export const loginHod = async (credentials) => {
   const response = await mainApi.post('/hod/login', credentials);
-  localStorage.setItem('token', response.data.token);
-  localStorage.setItem('userRole', 'hod');
-  localStorage.setItem('userId', response.data.id);
-  localStorage.setItem('roleType', response.data.roleType);
   return response.data;
 };
 
 export const loginAdmin = async (credentials) => {
   const response = await mainApi.post('/admin/login', credentials);
-  localStorage.setItem('token', response.data.token);
-  localStorage.setItem('userRole', 'admin');
-  localStorage.setItem('userId', response.data.id); // Store user ID before redirecting
-  setTimeout(() => {
-    window.location.href = "/admin";  // Redirect after saving token
-  }, 500); // Add delay to ensure storage completes
   return response.data;
 };
 
