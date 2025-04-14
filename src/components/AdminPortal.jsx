@@ -57,6 +57,7 @@ function AdminPortal() {
     password: "",
     app_password: "",
     department: "",
+    roleType: "",
   });
 
   useEffect(() => {
@@ -321,6 +322,9 @@ function AdminPortal() {
                     Department
                   </TableCell>
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                   Role Type
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                     Actions
                   </TableCell>
                 </TableRow>
@@ -331,6 +335,7 @@ function AdminPortal() {
                     <TableCell>{hod.name}</TableCell>
                     <TableCell>{hod.email}</TableCell>
                     <TableCell>{hod.department}</TableCell>
+                    <TableCell>{hod.roleType}</TableCell>
                     <TableCell>
                       <Button
                         variant="contained"
@@ -377,6 +382,9 @@ function AdminPortal() {
                     Department
                   </TableCell>
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  Role Type
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                     Actions
                   </TableCell>
                 </TableRow>
@@ -387,6 +395,7 @@ function AdminPortal() {
                     <TableCell>{fpc.name}</TableCell>
                     <TableCell>{fpc.email}</TableCell>
                     <TableCell>{fpc.department}</TableCell>
+                    <TableCell>{fpc.roleType}</TableCell>
                     <TableCell>
                       <Button
                         variant="contained"
@@ -529,6 +538,18 @@ function AdminPortal() {
               <MenuItem value="CSE">CSE</MenuItem>
               <MenuItem value="IT">IT</MenuItem>
             </TextField>
+            <TextField
+      select
+      fullWidth
+      label="Role Type"
+      name="roleType"
+      value={newFpc.roleType}
+      onChange={handleFpcInputChange}
+      required
+    >
+      <MenuItem value="department">Department</MenuItem>
+      <MenuItem value="institute">Institute</MenuItem>
+    </TextField>
           </DialogContent>
           <DialogActions>
             <Button

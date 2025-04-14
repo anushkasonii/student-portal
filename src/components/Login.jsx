@@ -57,6 +57,9 @@ function Login() {
         localStorage.setItem("token", response.token);
         localStorage.setItem("userRole", role);
         localStorage.setItem("userId", response.id);
+        if (response.roleType) {
+          localStorage.setItem("roleType", response.roleType);
+        }
         localStorage.setItem("isAuthenticated", "true");
         loginSuccessful = true;
         navigate(path);

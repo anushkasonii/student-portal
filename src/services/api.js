@@ -35,16 +35,35 @@ const mainApi = axios.create({
     }
     return config;
   });
+
+  api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401) {
+        localStorage.clear();
+        window.location.href = '/login';
+      }
+      return Promise.reject(error);
+    }
+  );
 });
 
 // Auth endpoints
 export const loginFpc = async (credentials) => {
   const response = await mainApi.post('/fpc/login', credentials);
+  localStorage.setItem('token', response.data.token);
+  localStorage.setItem('userRole', 'fpc');
+  localStorage.setItem('userId', response.data.id);
+  localStorage.setItem('roleType', response.data.roleType);
   return response.data;
 };
 
 export const loginHod = async (credentials) => {
   const response = await mainApi.post('/hod/login', credentials);
+  localStorage.setItem('token', response.data.token);
+  localStorage.setItem('userRole', 'hod');
+  localStorage.setItem('userId', response.data.id);
+  localStorage.setItem('roleType', response.data.roleType);
   return response.data;
 };
 
@@ -224,6 +243,7 @@ export const createHod = async (hodData) => {
       email: hodData.email,
       password: hodData.password,
       app_password : hodData.app_password,
+      roleType: hodData.roleType,
       department: hodData.department
     }, {
       headers: {
@@ -244,7 +264,8 @@ export const createFpc = async (fpcData) => {
       name: fpcData.name,
       email: fpcData.email,
       password: fpcData.password,
-      department: fpcData.department
+      department: fpcData.department,
+      roleType: fpcData.roleType
     }, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -294,17 +315,19 @@ export const resetPassword = async (data) => {
 };
 
 export const logout = async () => {
-  const token = localStorage.getItem('token');
-  const userRole = localStorage.getItem('userRole');
-  if (!token || !userRole) return;
   
   try {
-    // Use mainApi instance since it already has the base URL configured
-    await mainApi.post(`/${userRole}/logout`);
-  } catch (error) {
-    console.error('Logout error:', error);
-  } finally {
+    const token = localStorage.getItem('token');
+    if (token) {
+      await mainApi.post('/logout', {}, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+    }
     localStorage.clear();
+  } catch (error) {
+    console.error('Error during logout:', error);
   }
 };
 

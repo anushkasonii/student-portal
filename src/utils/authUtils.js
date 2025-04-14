@@ -1,5 +1,21 @@
 import { jwtDecode } from 'jwt-decode';
 
+export function getRoleTypeFromToken() {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('JWT token not found');
+      return null;
+    }
+    const decodedToken = jwtDecode(token);
+    return decodedToken.roleType;
+  } catch (error) {
+    console.error('Error decoding JWT token:', error);
+    return null;
+  }
+}
+
+
 export function getIdFromToken(role) {
     try {
         const token = localStorage.getItem('token');
@@ -12,18 +28,18 @@ export function getIdFromToken(role) {
 
         const decodedToken = jwtDecode(token);
         console.log('Decoded Token:', decodedToken);
+        const roleType = decodedToken.roleType;
 
-        // Check role and return the appropriate ID
-        if (role === "fpc") return decodedToken.id;
-        if (role === "hod") return decodedToken.id;
-        console.error('Invalid role');
-        return null;
-
-    } catch (error) {
+        if ((role === "fpc" || role === "hod") && !roleType) {
+          console.error('Role type not found in token');
+          return null;
+        }
+        return decodedToken.id;
+      } catch (error) {
         console.error('Error decoding JWT token:', error);
         return null;
+      }
     }
-}
 
 export const getEmailFromToken = () => {
     const token = localStorage.getItem('token');

@@ -8,7 +8,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminPortal from "./components/AdminPortal";
 import SuccessPage from "./components/SuccessPage";
 import HomePage from "./components/HomePage";
-import ForgotPassword from './components/ForgotPassword';
+import ForgotPassword from "./components/ForgotPassword";
 
 function App() {
   console.log("App working...");
@@ -22,29 +22,33 @@ function App() {
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/login" element={<Login />} />
 
-
         <Route
           path="/fpc"
           element={
-            <ProtectedRoute role="fpc">
+            <ProtectedRoute
+              role="fpc"
+              roleType={localStorage.getItem("roleType")}
+            >
               <FpcPortal />
             </ProtectedRoute>
           }
         />
 
-{/* <Route path="/fpc" element={<FpcPortal />} /> */}
+        {/* <Route path="/fpc" element={<FpcPortal />} /> */}
 
         <Route
           path="/hod"
           element={
-            <ProtectedRoute role="hod">
+            <ProtectedRoute
+              role="hod"
+              roleType={localStorage.getItem("roleType")}
+            >
               <HodPortal />
             </ProtectedRoute>
           }
         />
 
-{/* <Route path="/hod" element={<HodPortal />} /> */}
-        
+        {/* <Route path="/hod" element={<HodPortal />} /> */}
 
         <Route
           path="/admin"

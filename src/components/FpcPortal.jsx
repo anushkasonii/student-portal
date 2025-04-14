@@ -39,6 +39,8 @@ function FpcPortal() {
   const [page, setPage] = useState(0);
   const [rowsPerPage] = useState(10);
 
+
+
   useEffect(() => {
     fetchSubmissions();
   }, []);

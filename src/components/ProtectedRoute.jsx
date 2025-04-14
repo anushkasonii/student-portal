@@ -6,6 +6,7 @@ const ProtectedRoute = ({ children, role }) => {
 
   const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
   const userRole = localStorage.getItem("userRole");
+  const roleType = localStorage.getItem('roleType');
 
   console.log("isAuthenticated:", isAuthenticated);
   console.log("Stored userRole:", userRole);
@@ -18,7 +19,7 @@ const ProtectedRoute = ({ children, role }) => {
 
   if (role && role !== userRole) {
     console.warn("User role mismatch, redirecting to login...");
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/unauthorized" />;
   }
 
   return children;
