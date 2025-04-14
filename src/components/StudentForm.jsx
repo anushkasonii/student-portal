@@ -46,6 +46,25 @@ const validationSchema = yup
     nocType: yup.string().required("NOC Type is required"),
     gender: yup.string().required("Gender is required"),
     section: yup.string().required("Section is required"),
+    cgpa: yup.string().when("nocType", {
+      is: "Specific",
+      then: () =>
+        yup
+          .string()
+          .required("CGPA is required for 'Specific' NOC type")
+          .matches(
+            /^[0-9](\.[0-9]{1,2})?$|^10(\.0{1,2})?$/,
+            "Enter valid CGPA between 0-10"
+          ),
+    }),
+    backlogs: yup.string().when("nocType", {
+      is: "Specific",
+      then: () =>
+        yup
+          .string()
+          .required("Backlogs information is required for 'Specific' NOC type")
+          .matches(/^[0-9]+$/, "Enter valid number of backlogs"),
+    }),
     offerType: yup.string().required("Offer Type is required"),
     companyName: yup.string().when("nocType", {
       is: "Specific",
@@ -136,15 +155,15 @@ function StudentForm() {
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-const validateFile = (file, isRequired = false) => {
-  if (isRequired && !file) return "File is required";
-  if (file) {
-    if (!file.type.includes("pdf")) return "File must be a PDF";
-    if (file.size > 5 * 1024 * 1024) return "File size must be less than 5MB";
-    if (file.name.includes(" ")) return "File name should not contain spaces";
-  }
-  return "";
-};
+  const validateFile = (file, isRequired = false) => {
+    if (isRequired && !file) return "File is required";
+    if (file) {
+      if (!file.type.includes("pdf")) return "File must be a PDF";
+      if (file.size > 5 * 1024 * 1024) return "File size must be less than 5MB";
+      if (file.name.includes(" ")) return "File name should not contain spaces";
+    }
+    return "";
+  };
 
   const NOC_TYPE_INFO = {
     Specific:
@@ -163,6 +182,8 @@ const validateFile = (file, isRequired = false) => {
       section: "",
       offerType: "",
       semester: "",
+      cgpa: "",
+      backlogs: "",
       gender: "",
       companyName: "",
       companyCity: "",
@@ -591,6 +612,44 @@ const validateFile = (file, isRequired = false) => {
                   </MenuItem>
                 </TextField>
               </Grid>
+
+              {formik.values.nocType === "Specific" && (
+                <>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      id="cgpa"
+                      name="cgpa"
+                      label="CGPA"
+                      value={formik.values.cgpa}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      error={formik.touched.cgpa && Boolean(formik.errors.cgpa)}
+                      helperText={formik.touched.cgpa && formik.errors.cgpa}
+                      disabled={!emailVerified}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      id="backlogs"
+                      name="backlogs"
+                      label="Number of Backlogs"
+                      value={formik.values.backlogs}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      error={
+                        formik.touched.backlogs &&
+                        Boolean(formik.errors.backlogs)
+                      }
+                      helperText={
+                        formik.touched.backlogs && formik.errors.backlogs
+                      }
+                      disabled={!emailVerified}
+                    />
+                  </Grid>
+                </>
+              )}
 
               <Grid item xs={12} sm={6}>
                 <TextField
