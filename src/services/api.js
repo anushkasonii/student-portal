@@ -245,7 +245,6 @@ export const createFpc = async (fpcData) => {
       name: fpcData.name,
       email: fpcData.email,
       password: fpcData.password,
-      role_type: fpcData.role_type,
       app_password : fpcData.app_password,
       department: fpcData.department
     }, {

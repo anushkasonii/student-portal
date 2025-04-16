@@ -184,7 +184,7 @@ function AdminPortal() {
       setError("Password is required");
       return false;
     }
-    if (!formData.role_type) {
+    if (dialogType === "hod" && !formData.role_type) {
       setError("Role Type is required");
       return false;
     }
@@ -522,6 +522,7 @@ function AdminPortal() {
                 setFormData({...formData, role_type: e.target.value })
               }
               sx={{ mb: 2 }}
+              style={{ display: dialogType === "hod" ? undefined : "none" }}
             >
               <MenuItem value="Specific">Specific</MenuItem>
               <MenuItem value="Generic">Generic</MenuItem>
