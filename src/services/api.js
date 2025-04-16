@@ -355,4 +355,34 @@ export const updateFpc = async (fpcData) => {
   }
 };
 
+export const createOffice = async (officeData) => {
+  try {
+    const response = await mainApi.post('/admin/office', {
+      department: officeData.department,
+      email: officeData.email
+    },{
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json' 
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating office:', error);
+    throw error; 
+  } 
+}
+
+export const deleteOffice = async (id) => {
+  try {
+    const response = await mainApi.delete(`/admin/office?id=${id}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting office:', error);
+    throw error;
+  }
+};
+
 export { submissionApi, mainApi };
