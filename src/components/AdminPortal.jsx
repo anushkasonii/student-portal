@@ -55,6 +55,7 @@ function AdminPortal() {
     name: "",
     email: "",
     password: "",
+    role_type: "",
     app_password: "",
     department: "",
   });
@@ -126,6 +127,7 @@ function AdminPortal() {
       name: "",
       email: "",
       password: "",
+      role_type: "",
       app_password: "",
       department: "",
     });
@@ -182,6 +184,10 @@ function AdminPortal() {
       setError("Password is required");
       return false;
     }
+    if (!formData.role_type) {
+      setError("Role Type is required");
+      return false;
+    }
     if (!formData.app_password) {
       setError("App Password is required");
       return false;
@@ -209,6 +215,7 @@ function AdminPortal() {
         email: formData.email,
         name: formData.name,
         password: formData.password,
+        role_type: formData.role_type,
         department: formData.department,
         app_password: formData.app_password,
       };
@@ -506,6 +513,19 @@ function AdminPortal() {
               }}
               sx={{ mb: 2 }}
             />
+            <TextField
+              select
+              label="Role Type"
+              fullWidth
+              value={formData.role_type}
+              onChange={(e) =>
+                setFormData({...formData, role_type: e.target.value })
+              }
+              sx={{ mb: 2 }}
+            >
+              <MenuItem value="Specific">Specific</MenuItem>
+              <MenuItem value="Generic">Generic</MenuItem>
+            </TextField>
             <TextField
               label="App Password"
               // type="password"

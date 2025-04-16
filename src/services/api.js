@@ -223,6 +223,7 @@ export const createHod = async (hodData) => {
       name: hodData.name,
       email: hodData.email,
       password: hodData.password,
+      role_type: hodData.role_type,
       app_password : hodData.app_password,
       department: hodData.department
     }, {
@@ -244,6 +245,8 @@ export const createFpc = async (fpcData) => {
       name: fpcData.name,
       email: fpcData.email,
       password: fpcData.password,
+      role_type: fpcData.role_type,
+      app_password : fpcData.app_password,
       department: fpcData.department
     }, {
       headers: {
