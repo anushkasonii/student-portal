@@ -5,9 +5,9 @@ import { getIdFromToken } from "../utils/authUtils";
 // const SUBMISSION_SERVICE_URL = 'https://temp.6513.in/';
 // const MAIN_SERVICE_URL = 'https://temp.6513.in/';
 // const FILES_BASE_URL = 'https://temp.6513.in/files';
-const SUBMISSION_SERVICE_URL = 'http://localhost:8001/';
-const MAIN_SERVICE_URL = 'http://localhost:8002/';
-const FILES_BASE_URL = 'http://localhost:8002/files';
+const SUBMISSION_SERVICE_URL = 'https://rg6sqm-8001.csb.app/';
+const MAIN_SERVICE_URL = 'https://rg6sqm-8002.csb.app/';
+const FILES_BASE_URL = 'https://rg6sqm-8002.csb.app/files';
 
 
 
